@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>矛盾雷达 · AI辅助矛盾调解分诊</title>
+<style>
+  :root{
+    --绿:#2ecc71; --黄:#f1c40f; --橙:#e67e22; --红:#e74c3c; --深红:#c0392b;
+    --bg:#f5f6fa; --card:#ffffff; --text:#2c3e50; --muted:#7f8c8d; --border:#dcdde1;
+    --prim:#2980b9; --prim-dark:#1a5276;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);line-height:1.6;padding:20px}
+  .container{max-width:760px;margin:0 auto}
+  h1{text-align:center;font-size:1.7em;margin-bottom:4px;color:var(--prim-dark)}
+  .subtitle{text-align:center;color:var(--muted);margin-bottom:24px;font-size:.95em}
+  .card{background:var(--card);border-radius:12px;padding:24px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,.06);border:1px solid var(--border)}
+  .card h2{font-size:1.15em;margin-bottom:16px;color:var(--prim-dark);border-bottom:2px solid var(--bg);padding-bottom:8px}
+  label{display:block;font-weight:600;margin:14px 0 6px;font-size:.95em}
+  .q-desc{color:var(--muted);font-size:.82em;margin-bottom:4px}
+  select,input[type=text]{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:1em;background:#fff}
+  select:focus,input:focus{outline:none;border-color:var(--prim)}
+  textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:.95em;min-height:70px;resize:vertical;font-family:inherit}
+  .btn{display:block;width:100%;padding:14px;background:var(--prim);color:#fff;border:none;border-radius:8px;font-size:1.05em;font-weight:600;cursor:pointer;margin-top:18px;transition:background .2s}
+  .btn:hover{background:var(--prim-dark)}
+  .btn:disabled{background:#bdc3c7;cursor:not-allowed}
+  /* 结果 */
+  .result{display:none}
+  .result.show{display:block}
+  .badge{display:inline-block;padding:6px 16px;border-radius:20px;color:#fff;font-weight:700;font-size:1em;margin-bottom:8px}
+  .risk-low{background:var(--绿)} .risk-mid{background:var(--黄);color:#333} .risk-high{background:var(--橙)} .risk-veryhigh{background:var(--红)} .risk-crisis{background:var(--深红)}
+  .meter{height:14px;background:#ecf0f1;border-radius:7px;overflow:hidden;margin:10px 0}
+  .meter > div{height:100%;border-radius:7px;transition:width .6s}
+  .sec{margin-top:16px;padding:14px;background:var(--bg);border-radius:8px;border-left:4px solid var(--prim)}
+  .sec h3{font-size:.98em;margin-bottom:8px;color:var(--prim-dark)}
+  .sec p,.sec li{font-size:.9em;color:#34495e}
+  .sec ul{margin-left:18px}
+  .tag{display:inline-block;background:#ecf0f1;padding:2px 10px;border-radius:12px;font-size:.8em;margin:2px}
+  .warn{background:#fdecea;border-left-color:var(--红);padding:12px;border-radius:8px;font-size:.88em;color:#c0392b;margin-top:12px}
+  .reset{background:#bdc3c7;color:#fff;width:auto;padding:10px 22px;margin-top:10px;font-size:.9em}
+  .matrix{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .matrix .cell{flex:1;min-width:110px;background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center}
+  .matrix .cell .num{font-size:1.6em;font-weight:700}
+  .matrix .cell .lbl{font-size:.78em;color:var(--muted)}
+  @media(max-width:600px){.container{padding:0}.card{padding:18px}}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🛰️ 矛盾雷达</h1>
+  <p class="subtitle">输入矛盾场景 → 判断介入时机、调解路径。基于20年社会矛盾调解实务判据引擎。</p>
+
+  <div class="card" id="formCard">
+    <h2>① 描述矛盾（可选）</h2>
+    <textarea id="desc" placeholder="例如：邻居为院墙位置吵了多年，都说对方占理，昨天又吵起来了，还扬言要上访…"></textarea>
+
+    <h2>② 五个判断问题（必填）</h2>
+
+    <label>Q1 这主要是什么矛盾？</label>
+    <select id="q1">
+      <option value="">请选择</option>
+      <option value="liyi">利益纠纷（钱/地/房/赔偿/欠薪/合同）</option>
+      <option value="mianzi">面子纠纷（争口气/谁对谁错/被看不起）</option>
+      <option value="qingxu">情绪纠纷（愤怒/委屈/不被当回事）</option>
+      <option value="chengxu">程序纠纷（不公/不透明/黑箱/走形式）</option>
+      <option value="hunhe">混合/说不清</option>
+    </select>
+
+    <label>Q2 矛盾发展到哪一步了？</label>
+    <select id="q2">
+      <option value="">请选择</option>
+      <option value="0">还在说理，没吵起来</option>
+      <option value="1">已经吵架/互相指责</option>
+      <option value="2">已骂街/扬言威胁/放狠话</option>
+      <option value="3">已聚集/动手/堵门/上访</option>
+    </select>
+
+    <label>Q3 双方现在的状态？</label>
+    <select id="q3">
+      <option value="">请选择</option>
+      <option value="0">都不太急，还能正常说</option>
+      <option value="1">一方特别急/受不了一点，另一方不急</option>
+      <option value="2">双方都比较急/都在撂狠话</option>
+    </select>
+
+    <label>Q4 双方的真实诉求摸清了吗？</label>
+    <select id="q4">
+      <option value="">请选择</option>
+      <option value="1">双方诉求都清楚</option>
+      <option value="0">一方清楚、一方模糊</option>
+      <option value="0">都模糊，说不清到底要啥</option>
+    </select>
+
+    <label>Q5 之前调解/沟通谈过几次？</label>
+    <select id="q5">
+      <option value="">请选择</option>
+      <option value="0">0次，还没正式谈</option>
+      <option value="1">1-2次，没谈拢</option>
+      <option value="2">3次以上都失败/越谈越僵</option>
+    </select>
+
+    <button class="btn" id="runBtn" onclick="run()">🚀 启动矛盾雷达</button>
+    <button class="btn reset" onclick="reset()">重置</button>
+  </div>
+
+  <div class="card result" id="resultCard">
+    <h2>📊 矛盾雷达评估结果</h2>
+
+    <div class="sec">
+      <h3>① 风险分级仪表盘</h3>
+      <span class="badge" id="riskBadge">—</span>
+      <div class="meter"><div id="riskMeter" style="width:0%"></div></div>
+      <p id="riskDesc" style="font-size:.9em"></p>
+      <p id="windowInfo" style="font-size:.9em;color:var(--muted)"></p>
+    </div>
+
+    <div class="sec">
+      <h3>② 调解路径建议</h3>
+      <p id="statusLine" style="font-weight:600"></p>
+      <p id="strategy" style="margin-top:6px"></p>
+      <div id="judgeRef"></div>
+    </div>
+
+    <div class="sec">
+      <h3>③ 分阶段调解话术</h3>
+      <div id="talk"></div>
+    </div>
+
+    <div class="warn" id="dangerWarn" style="display:none">
+      ⚠️ <strong>高危预警：</strong>此矛盾已达需<strong>立即上报/应急处理</strong>级别，不建议仅自行调解，请按程序上报并做好人群疏导与现场管控。
+    </div>
+  </div>
+</div>
+
+<script>
+// ============ 矛盾雷达 判据引擎 ============
+// 基于 调解窗口L1-L5 判据 + 五态状态机 + 时间风险表
+// 来源：产出内容/矛调/调解窗口期判据精确化/产品化/矛盾雷达_判据引擎prompt
+
+// --- 判据计算 ---
+function compute(query){
+  const q1=q1,q2=+query.q2,q3=+query.q3,q4=+query.q4,q5=+query.q5;
+
+  // Step2: 估 r_i（介入迫切度）—— Q2 × Q3
+  let ri = 0.1 + q2*0.25;
+  if(q3===1) ri += 0.2;   // 一方急
+  if(q3===2) ri += 0.35;  // 双方急
+  ri = Math.min(ri, 1);
+  // L1触发阈值（群众方R阈=0.1，取综合0.15）
+  const L1 = ri >= 0.3;   // 有人想动手/很急
+
+  // Step3: 估 a_i（不可收拾度）—— Q2 × Q5
+  let ai = 0.15 + q2*0.22;
+  if(q5===2) ai += 0.25;  // 谈崩多次，僵化
+  else if(q5===1) ai += 0.1;
+  ai = Math.min(ai, 1);
+
+  // 判据
+  const L2 = ai < 0.7;    // 还没到不可收拾
+  const L3 = q3!==1;      // 双方差距不大（非一方特急一方不急极端）
+  const L4 = q4===1;      // 信息足
+  const L5 = true;        // MVP默认当面矛盾（描述多层时人工调）
+
+  // Step6: 状态机判定
+  let state;
+  if(!L1) state = '未启动';
+  else if(ai>=1.0) state = '提前关闭';
+  else if(ai>=0.7) state = '关闭';
+  else if(L1 && L2 && L3 && L5 && L4) state = '打开';
+  else if(L1 && L2 && !L4) state = '收窄';
+  else state = '打开';
+
+  // Step7: 风险分级（时间速算表→风险级）
+  let risk, window, days;
+  if(ai<0.3){risk='低';window='从容';days='>30天';}
+  else if(ai<0.5){risk='低';window='标准';days='14-30天';}
+  else if(ai<0.7){risk='中';window='加速';days='7-14天';}
+  else if(ai<0.9){risk='高';window='紧急';days='3-7天';}
+  else {risk='极高';window='危机';days='<3天';}
+
+  return {q1,ri,ai,L1,L2,L3,L4,L5,state,risk,window,days,high:ai>=0.7};
+}
+
+// --- 类型话术 ---
+const TYPE_META = {
+  liyi:{name:'利益纠纷',focus:'阶段3',tip:'核心是可量化条件谈判'},
+  mianzi:{name:'面子纠纷',focus:'阶段2',tip:'核心是给台阶、让双方体面收场'},
+  qingxu:{name:'情绪纠纷',focus:'阶段1',tip:'核心是先情后利、把情绪翻译成需求'},
+  chengxu:{name:'程序纠纷',focus:'阶段1+2',tip:'核心是给说法、去黑箱感'},
+  hunhe:{name:'混合纠纷',focus:'综合',tip:'先定主矛盾，再分层处理'}
+};
+
+// --- 三阶段话术模板 ---
+function buildTalk(type, state, high){
+  const t = TYPE_META[type]||TYPE_META.hunhe;
+  let html = '<ul>';
+
+  // 阶段1 先情后利
+  if(!high || state!=='未启动'){
+    html += `<li><strong>阶段1·先情后利（${state==='收窄'?'压缩处理':''}）</strong><br>
+      开场定调：&quot;今天请两位来，不是让你们再吵一遍，是我来听你们说的。&quot;<br>
+      翻译闹：&quot;您反复提[表层诉求]，背后是不是还有别的顾虑？&quot;</li>`;
+  }
+
+  // 阶段2 给台阶
+  if(t.focus==='阶段2'||t.focus==='阶段1+2'||t.focus==='综合'){
+    html += `<li><strong>阶段2·给台阶（${t.name}关键）</strong><br>
+      平起平坐：&quot;这事打这么久，我看两家都是受害者。&quot;<br>
+      给可能：&quot;咱们都不说错，只说可能，行不行？&quot;</li>`;
+  } else {
+    html += `<li><strong>阶段2·给台阶</strong><br>
+      肯定价值：&quot;今天能坐下来，往后日子好过，这比争一口气值。&quot;</li>`;
+  }
+
+  // 阶段3 给结束
+  html += `<li><strong>阶段3·给结束（防反复）</strong><br>
+    分步方案→书面协议→回访：&quot;咱们把这个结果写下来，双方都确认，往后按这个来。&quot;</li>`;
+
+  html += '</ul>';
+  return html;
+}
+
+// --- 主运行 ---
+function run(){
+  const get=(id)=>document.getElementById(id).value;
+  const q1=get('q1'),q2=get('q2'),q3=get('q3'),q4=get('q4'),q5=get('q5');
+  if(!q1||q2===''||q3===''||q4===''||q5===''){alert('请完成 Q1-Q5 五个问题');return;}
+
+  const res=compute({q1,q2,q3,q4,q5});
+
+  // 风险分级渲染
+  const badge=document.getElementById('riskBadge');
+  const map={低:['风险级别：🟢 低','risk-low'],中:['风险级别：🟡 中','risk-mid'],高:['风险级别：🟠 高','risk-high'],极高:['风险级别：🔴 极高','risk-veryhigh']};
+  badge.className='badge '+map[res.risk][1];
+  badge.textContent=map[res.risk][0];
+  const pct={低:20,中:50,高:75,极高:95}[res.risk];
+  document.getElementById('riskMeter').style.width=pct+'%';
+  document.getElementById('riskDesc').innerHTML=`矛盾类型：${TYPE_META[q1].name}（${TYPE_META[q1].tip}）<br>介入迫切度 r ≈ ${res.ri.toFixed(2)} ｜ 不可收拾度 a ≈ ${res.ai.toFixed(2)}`;
+  document.getElementById('windowInfo').textContent=`剩余干预窗口：约 ${res.days}（${res.window}节奏）`;
+
+  // 状态策略
+  const stLine=document.getElementById('statusLine');
+  const stateInfo={
+    '未启动':['🟢 窗口未开 · 监测联系', '各方还没到想动手的程度。策略：监测+建立联系，别急着介入，先摸情况。'],
+    '打开':['🟢 窗口打开 · 最佳介入', '判据全过（L1+L2+L3+L4+L5）。策略：立即标准调解流程，此时介入成本最低、成功率最高。'],
+    '收窄':['🟡 窗口收窄 · 加速', 'L4信息不足（一方诉求模糊）。策略：先摸底、分别了解真实诉求，再定调解方案——直接开会易失败。'],
+    '关闭':['🟠 窗口关闭 · 制度渠道', 'a≥0.7，已到不可收拾边缘。策略：不再强行自行调解，走制度渠道（上报/裁决），同时做好疏导。'],
+    '提前关闭':['🔴 提前关闭 · 危机管理', 'a≥1.0，不可逆。策略：立即应急处理，安全第一，介入人群疏导+现场管控，调解让位于处置。']
+  }[res.state];
+  stLine.textContent=stateInfo[0];
+  document.getElementById('strategy').textContent=stateInfo[1];
+
+  // 判据引用
+  const Ls=[]; if(res.L1)Ls.push('L1✓');else Ls.push('L1✗');
+  Ls.push(res.L2?'L2✓':'L2✗'); Ls.push(res.L3?'L3✓':'L3✗');
+  Ls.push(res.L4?'L4✓':'L4✗'); Ls.push(res.L5?'L5✓':'L5✗');
+  document.getElementById('judgeRef').innerHTML='<p style="font-size:.8em;color:var(--muted);margin-top:8px">判据引用：'+Ls.join(' ')+' → 状态【'+res.state+'】</p>';
+
+  // 话术
+  document.getElementById('talk').innerHTML=buildTalk(q1,res.state,res.high);
+
+  // 高危预警
+  document.getElementById('dangerWarn').style.display=res.high?'block':'none';
+
+  // 滚动到结果
+  const rc=document.getElementById('resultCard');
+  rc.classList.add('show');
+  rc.scrollIntoView({behavior:'smooth'});
+}
+
+function reset(){
+  document.getElementById('desc').value='';
+  ['q1','q2','q3','q4','q5'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('resultCard').classList.remove('show');
+  document.getElementById('dangerWarn').style.display='none';
+}
+</script>
+</body>
+</html>
