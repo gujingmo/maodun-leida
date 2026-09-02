@@ -3,278 +3,395 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>矛盾雷达 · AI辅助矛盾调解分诊</title>
+<title>矛盾雷达 2.0 · 基层矛盾调解工作台</title>
 <style>
-  :root{
-    --绿:#2ecc71; --黄:#f1c40f; --橙:#e67e22; --红:#e74c3c; --深红:#c0392b;
-    --bg:#f5f6fa; --card:#ffffff; --text:#2c3e50; --muted:#7f8c8d; --border:#dcdde1;
-    --prim:#2980b9; --prim-dark:#1a5276;
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);line-height:1.6;padding:20px}
-  .container{max-width:760px;margin:0 auto}
-  h1{text-align:center;font-size:1.7em;margin-bottom:4px;color:var(--prim-dark)}
-  .subtitle{text-align:center;color:var(--muted);margin-bottom:24px;font-size:.95em}
-  .card{background:var(--card);border-radius:12px;padding:24px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,.06);border:1px solid var(--border)}
-  .card h2{font-size:1.15em;margin-bottom:16px;color:var(--prim-dark);border-bottom:2px solid var(--bg);padding-bottom:8px}
-  label{display:block;font-weight:600;margin:14px 0 6px;font-size:.95em}
-  .q-desc{color:var(--muted);font-size:.82em;margin-bottom:4px}
-  select,input[type=text]{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:1em;background:#fff}
-  select:focus,input:focus{outline:none;border-color:var(--prim)}
-  textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:.95em;min-height:70px;resize:vertical;font-family:inherit}
-  .btn{display:block;width:100%;padding:14px;background:var(--prim);color:#fff;border:none;border-radius:8px;font-size:1.05em;font-weight:600;cursor:pointer;margin-top:18px;transition:background .2s}
-  .btn:hover{background:var(--prim-dark)}
-  .btn:disabled{background:#bdc3c7;cursor:not-allowed}
-  /* 结果 */
-  .result{display:none}
-  .result.show{display:block}
-  .badge{display:inline-block;padding:6px 16px;border-radius:20px;color:#fff;font-weight:700;font-size:1em;margin-bottom:8px}
-  .risk-low{background:var(--绿)} .risk-mid{background:var(--黄);color:#333} .risk-high{background:var(--橙)} .risk-veryhigh{background:var(--红)} .risk-crisis{background:var(--深红)}
-  .meter{height:14px;background:#ecf0f1;border-radius:7px;overflow:hidden;margin:10px 0}
-  .meter > div{height:100%;border-radius:7px;transition:width .6s}
-  .sec{margin-top:16px;padding:14px;background:var(--bg);border-radius:8px;border-left:4px solid var(--prim)}
-  .sec h3{font-size:.98em;margin-bottom:8px;color:var(--prim-dark)}
-  .sec p,.sec li{font-size:.9em;color:#34495e}
-  .sec ul{margin-left:18px}
-  .tag{display:inline-block;background:#ecf0f1;padding:2px 10px;border-radius:12px;font-size:.8em;margin:2px}
-  .warn{background:#fdecea;border-left-color:var(--红);padding:12px;border-radius:8px;font-size:.88em;color:#c0392b;margin-top:12px}
-  .reset{background:#bdc3c7;color:#fff;width:auto;padding:10px 22px;margin-top:10px;font-size:.9em}
-  .matrix{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-  .matrix .cell{flex:1;min-width:110px;background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center}
-  .matrix .cell .num{font-size:1.6em;font-weight:700}
-  .matrix .cell .lbl{font-size:.78em;color:var(--muted)}
-  @media(max-width:600px){.container{padding:0}.card{padding:18px}}
+:root{--绿:#2ecc71;--黄:#f1c40f;--橙:#e67e22;--红:#e74c3c;--深红:#c0392b;--深:#16213e;--金:#c9a86a;--bg:#f5f6fa;--card:#fff;--text:#2a2a35;--sub:#666}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--text);line-height:1.7}
+.wrap{max-width:760px;margin:0 auto;padding:20px 16px 60px}
+header{background:linear-gradient(135deg,#16213e,#0f3460);color:#fff;border-radius:12px;padding:24px 22px;margin-bottom:20px}
+header h1{font-size:22px;letter-spacing:2px}
+header .sub{font-size:13px;color:#b8b8cc;margin-top:6px}
+.card{background:var(--card);border-radius:10px;padding:20px 18px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.card h2{font-size:16px;color:var(--深);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center}
+.hint{font-size:12px;color:var(--sub);background:#fafafa;padding:8px 10px;border-radius:6px;margin-bottom:12px}
+label{font-size:14px;color:#444;display:block;margin:12px 0 6px}
+select,input[type=text],textarea{width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:6px;font-size:14px;font-family:inherit}
+select:focus,input:focus,textarea:focus{outline:none;border-color:var(--金)}
+.radios{display:flex;flex-wrap:wrap;gap:8px}
+.radios label{display:flex;align-items:center;gap:6px;background:#f7f7fa;border:1px solid #eee;border-radius:6px;padding:7px 12px;font-size:13px;margin:0;cursor:pointer}
+.radios input{margin:0}
+.btn{display:block;width:100%;padding:13px;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;background:var(--深);color:#fff;margin-top:16px}
+.btn:hover{opacity:.9}
+.btn:disabled{background:#bbb;cursor:not-allowed}
+.btn2{background:var(--金);color:#1a1a2e;margin-top:8px}
+.result{display:none}
+.result.show{display:block;animation:fade .4s}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.badge{display:inline-block;padding:4px 12px;border-radius:20px;font-weight:bold;font-size:14px;color:#fff}
+.badge.低{background:var(--绿)}.badge.中{background:var(--黄);color:#333}.badge.高{background:var(--橙)}.badge.极高{background:var(--深红)}
+.gauge{display:flex;align-items:center;gap:14px;background:#fafafa;border-radius:8px;padding:14px;margin:8px 0}
+.gauge .lbl{font-size:13px;color:var(--sub);min-width:90px}
+.gauge .val{font-size:20px;font-weight:bold}
+.metric{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+.mbox{background:#f7f7fa;border-radius:8px;padding:12px}
+.mbox .k{font-size:12px;color:var(--sub)}
+.mbox .v{font-size:17px;font-weight:bold;margin-top:2px}
+.sec{margin:14px 0 6px;font-weight:bold;color:var(--深)}
+.steps{margin:8px 0}
+.steps .st{background:#f7f7fa;border-left:3px solid var(--金);padding:10px 12px;border-radius:0 6px 6px 0;margin:8px 0}
+.steps .st b{color:var(--深)}
+.hl{background:#16213e;color:#e8e8f0;padding:14px 16px;border-radius:6px;font-size:15px;margin:10px 0}
+.pill{display:inline-block;background:var(--金);color:#1a1a2e;border-radius:4px;padding:2px 8px;font-size:12px;margin:2px}
+.tagline{font-size:13px;color:var(--sub);margin-top:6px}
+.casebox{border:1px solid #eee;border-radius:8px;padding:12px;margin:8px 0}
+.casebox .t{font-weight:bold;color:var(--深)}
+.casebox .m{font-size:13px;color:#555;margin-top:4px}
+.warn{background:#fdf3f3;border:1px solid #f5c6c6;border-left:4px solid var(--红);padding:12px 14px;border-radius:6px;margin:10px 0}
+.warn b{color:var(--红)}
+.tabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.tabs .tab{background:#eee;border:none;padding:8px 14px;border-radius:20px;cursor:pointer;font-size:13px}
+.tabs .tab.active{background:var(--深);color:#fff}
+.hidden{display:none}
+footer{text-align:center;color:#aaa;font-size:12px;margin-top:24px}
+@media(max-width:480px){.metric{grid-template-columns:1fr}.gauge{flex-direction:column;align-items:flex-start}}
 </style>
 </head>
 <body>
-<div class="container">
-  <h1>🛰️ 矛盾雷达</h1>
-  <p class="subtitle">输入矛盾场景 → 判断介入时机、调解路径。基于20年社会矛盾调解实务判据引擎。</p>
+<div class="wrap">
+<header>
+  <h1>⚡ 矛盾雷达 2.0</h1>
+  <div class="sub">基层矛盾调解工作台 · 判据引擎来自20年矛调实务（漏框架 / R-A窗口 / 五态状态机 / GMCR）</div>
+</header>
 
-  <div class="card" id="formCard">
-    <h2>① 描述矛盾（可选）</h2>
-    <textarea id="desc" placeholder="例如：邻居为院墙位置吵了多年，都说对方占理，昨天又吵起来了，还扬言要上访…"></textarea>
+<!-- ① 引导：选模式 -->
+<div class="card">
+  <h2>开始分诊</h2>
+  <div class="hint">选择矛盾场景，回答几个问题，系统输出「风险分级＋调解路径＋分阶段话术」，并可匹配真实案例与 GMCR 稳定性判断。</div>
+  <label>1. 选择矛盾场景</label>
+  <div class="tabs" id="sceneTabs"></div>
+  <div id="sceneDesc" class="tagline"></div>
+</div>
 
-    <h2>② 五个判断问题（必填）</h2>
+<!-- ② 问卷 -->
+<div class="card" id="quizCard">
+  <h2>矛盾情报（5问）</h2>
+  <div id="quiz"></div>
+  <button class="btn" id="runBtn">⚡ 运行矛盾雷达</button>
+</div>
 
-    <label>Q1 这主要是什么矛盾？</label>
-    <select id="q1">
-      <option value="">请选择</option>
-      <option value="liyi">利益纠纷（钱/地/房/赔偿/欠薪/合同）</option>
-      <option value="mianzi">面子纠纷（争口气/谁对谁错/被看不起）</option>
-      <option value="qingxu">情绪纠纷（愤怒/委屈/不被当回事）</option>
-      <option value="chengxu">程序纠纷（不公/不透明/黑箱/走形式）</option>
-      <option value="hunhe">混合/说不清</option>
-    </select>
+<!-- ③ 输出 -->
+<div class="card result" id="result">
+  <h2>诊断报告 <span class="badge" id="rBadge">中</span></h2>
+  <div id="rContent"></div>
+  <button class="btn btn2" id="proBtn">🔬 GMCR 稳定性深度判断（专业）</button>
+  <div id="gmcrBox"></div>
+</div>
 
-    <label>Q2 矛盾发展到哪一步了？</label>
-    <select id="q2">
-      <option value="">请选择</option>
-      <option value="0">还在说理，没吵起来</option>
-      <option value="1">已经吵架/互相指责</option>
-      <option value="2">已骂街/扬言威胁/放狠话</option>
-      <option value="3">已聚集/动手/堵门/上访</option>
-    </select>
-
-    <label>Q3 双方现在的状态？</label>
-    <select id="q3">
-      <option value="">请选择</option>
-      <option value="0">都不太急，还能正常说</option>
-      <option value="1">一方特别急/受不了一点，另一方不急</option>
-      <option value="2">双方都比较急/都在撂狠话</option>
-    </select>
-
-    <label>Q4 双方的真实诉求摸清了吗？</label>
-    <select id="q4">
-      <option value="">请选择</option>
-      <option value="1">双方诉求都清楚</option>
-      <option value="0">一方清楚、一方模糊</option>
-      <option value="0">都模糊，说不清到底要啥</option>
-    </select>
-
-    <label>Q5 之前调解/沟通谈过几次？</label>
-    <select id="q5">
-      <option value="">请选择</option>
-      <option value="0">0次，还没正式谈</option>
-      <option value="1">1-2次，没谈拢</option>
-      <option value="2">3次以上都失败/越谈越僵</option>
-    </select>
-
-    <button class="btn" id="runBtn" onclick="run()">🚀 启动矛盾雷达</button>
-    <button class="btn reset" onclick="reset()">重置</button>
-  </div>
-
-  <div class="card result" id="resultCard">
-    <h2>📊 矛盾雷达评估结果</h2>
-
-    <div class="sec">
-      <h3>① 风险分级仪表盘</h3>
-      <span class="badge" id="riskBadge">—</span>
-      <div class="meter"><div id="riskMeter" style="width:0%"></div></div>
-      <p id="riskDesc" style="font-size:.9em"></p>
-      <p id="windowInfo" style="font-size:.9em;color:var(--muted)"></p>
-    </div>
-
-    <div class="sec">
-      <h3>② 调解路径建议</h3>
-      <p id="statusLine" style="font-weight:600"></p>
-      <p id="strategy" style="margin-top:6px"></p>
-      <div id="judgeRef"></div>
-    </div>
-
-    <div class="sec">
-      <h3>③ 分阶段调解话术</h3>
-      <div id="talk"></div>
-    </div>
-
-    <div class="warn" id="dangerWarn" style="display:none">
-      ⚠️ <strong>高危预警：</strong>此矛盾已达需<strong>立即上报/应急处理</strong>级别，不建议仅自行调解，请按程序上报并做好人群疏导与现场管控。
-    </div>
-  </div>
+<footer>矛盾雷达 2.0 · 原创判据体系 · 仅供参考，高危必上报</footer>
 </div>
 
 <script>
-// ============ 矛盾雷达 判据引擎 ============
-// 基于 调解窗口L1-L5 判据 + 五态状态机 + 时间风险表
-// 来源：产出内容/矛调/调解窗口期判据精确化/产品化/矛盾雷达_判据引擎prompt
-
-// --- 判据计算 ---
-function compute(query){
-  const q1=q1,q2=+query.q2,q3=+query.q3,q4=+query.q4,q5=+query.q5;
-
-  // Step2: 估 r_i（介入迫切度）—— Q2 × Q3
-  let ri = 0.1 + q2*0.25;
-  if(q3===1) ri += 0.2;   // 一方急
-  if(q3===2) ri += 0.35;  // 双方急
-  ri = Math.min(ri, 1);
-  // L1触发阈值（群众方R阈=0.1，取综合0.15）
-  const L1 = ri >= 0.3;   // 有人想动手/很急
-
-  // Step3: 估 a_i（不可收拾度）—— Q2 × Q5
-  let ai = 0.15 + q2*0.22;
-  if(q5===2) ai += 0.25;  // 谈崩多次，僵化
-  else if(q5===1) ai += 0.1;
-  ai = Math.min(ai, 1);
-
-  // 判据
-  const L2 = ai < 0.7;    // 还没到不可收拾
-  const L3 = q3!==1;      // 双方差距不大（非一方特急一方不急极端）
-  const L4 = q4===1;      // 信息足
-  const L5 = true;        // MVP默认当面矛盾（描述多层时人工调）
-
-  // Step6: 状态机判定
-  let state;
-  if(!L1) state = '未启动';
-  else if(ai>=1.0) state = '提前关闭';
-  else if(ai>=0.7) state = '关闭';
-  else if(L1 && L2 && L3 && L5 && L4) state = '打开';
-  else if(L1 && L2 && !L4) state = '收窄';
-  else state = '打开';
-
-  // Step7: 风险分级（时间速算表→风险级）
-  let risk, window, days;
-  if(ai<0.3){risk='低';window='从容';days='>30天';}
-  else if(ai<0.5){risk='低';window='标准';days='14-30天';}
-  else if(ai<0.7){risk='中';window='加速';days='7-14天';}
-  else if(ai<0.9){risk='高';window='紧急';days='3-7天';}
-  else {risk='极高';window='危机';days='<3天';}
-
-  return {q1,ri,ai,L1,L2,L3,L4,L5,state,risk,window,days,high:ai>=0.7};
-}
-
-// --- 类型话术 ---
-const TYPE_META = {
-  liyi:{name:'利益纠纷',focus:'阶段3',tip:'核心是可量化条件谈判'},
-  mianzi:{name:'面子纠纷',focus:'阶段2',tip:'核心是给台阶、让双方体面收场'},
-  qingxu:{name:'情绪纠纷',focus:'阶段1',tip:'核心是先情后利、把情绪翻译成需求'},
-  chengxu:{name:'程序纠纷',focus:'阶段1+2',tip:'核心是给说法、去黑箱感'},
-  hunhe:{name:'混合纠纷',focus:'综合',tip:'先定主矛盾，再分层处理'}
+/* ============ 数据层 ============ */
+const SCENES = {
+  yiqi:   {name:"邻里纠纷",   desc:"邻里间地界、噪音、院墙、漏水等日常纠纷", keywords:["漏水","院墙","噪声","噪音","占地","公用","邻居"], type:"面子" },
+  gongdi: {name:"征地拆迁",   desc:"征地补偿、拆迁安置等群体利益纠纷",       keywords:["征地","拆迁","补偿","安置","征收","土地"], type:"利益" },
+  qianxin:{name:"欠薪纠纷",   desc:"工资拖欠、劳动报酬争议",                 keywords:["欠薪","工资","工钱","拖欠","薪酬","劳动报酬"], type:"利益" },
+  wuye:   {name:"物业纠纷",   desc:"物业费、服务、业委会等小区治理纠纷",     keywords:["物业","物业费","业委会","小区","停车","维修基金"], type:"利益" },
+  xinfang:{name:"信访积案",   desc:"多年积压、跨部门、反复上访的疑难矛盾",   keywords:["信访","上访","积案","多年","历史遗留","老案"], type:"程序" },
+  qinggan:{name:"情感家事",   desc:"婚恋、家庭、遗产、赡养等情感牵涉矛盾",   keywords:["婚","离婚","遗产","赡养","家事","兄弟","夫妻"], type:"情绪" },
+  minsheng:{name:"民生服务",  desc:"消费、医患、教育、环境等民生领域纠纷",   keywords:["消费","医患","医疗","教育","环境","赔偿"], type:"程序" }
 };
 
-// --- 三阶段话术模板 ---
-function buildTalk(type, state, high){
-  const t = TYPE_META[type]||TYPE_META.hunhe;
-  let html = '<ul>';
+const ENG = {
+  Q2:[
+    {v:1,t:"还在说理（正常沟通）"},
+    {v:2,t:"已吵起来了"},
+    {v:3,t:"已骂街/扬言/撂狠话"},
+    {v:4,t:"已聚集/动手/堵路"},
+    {v:5,t:"已上访/诉诸上级"}
+  ],
+  Q3:[
+    {v:1,t:"双方都不急"},
+    {v:2,t:"一方很急，另一方不急"},
+    {v:3,t:"双方都很急"},
+    {v:4,t:"一方已撂狠话/豁出去"}
+  ],
+  Q4:[
+    {v:1,t:"双方诉求都很清楚"},
+    {v:2,t:"一方清楚、一方模糊"},
+    {v:3,t:"双方都比较模糊"}
+  ],
+  Q5:[
+    {v:0,t:"还没谈过"},
+    {v:1,t:"谈过1-2次"},
+    {v:3,t:"谈过3次以上，都失败"}
+  ]
+};
 
-  // 阶段1 先情后利
-  if(!high || state!=='未启动'){
-    html += `<li><strong>阶段1·先情后利（${state==='收窄'?'压缩处理':''}）</strong><br>
-      开场定调：&quot;今天请两位来，不是让你们再吵一遍，是我来听你们说的。&quot;<br>
-      翻译闹：&quot;您反复提[表层诉求]，背后是不是还有别的顾虑？&quot;</li>`;
-  }
-
-  // 阶段2 给台阶
-  if(t.focus==='阶段2'||t.focus==='阶段1+2'||t.focus==='综合'){
-    html += `<li><strong>阶段2·给台阶（${t.name}关键）</strong><br>
-      平起平坐：&quot;这事打这么久，我看两家都是受害者。&quot;<br>
-      给可能：&quot;咱们都不说错，只说可能，行不行？&quot;</li>`;
-  } else {
-    html += `<li><strong>阶段2·给台阶</strong><br>
-      肯定价值：&quot;今天能坐下来，往后日子好过，这比争一口气值。&quot;</li>`;
-  }
-
-  // 阶段3 给结束
-  html += `<li><strong>阶段3·给结束（防反复）</strong><br>
-    分步方案→书面协议→回访：&quot;咱们把这个结果写下来，双方都确认，往后按这个来。&quot;</li>`;
-
-  html += '</ul>';
-  return html;
+/* 时间风险表 */
+function timeTable(a){
+  if(a<0.3)return {days:">30天",risk:"低"};
+  if(a<0.5)return {days:"14-30天",risk:"低"};
+  if(a<0.7)return {days:"7-14天",risk:"中"};
+  if(a<0.9)return {days:"3-7天",risk:"高"};
+  return {days:"<3天",risk:"极高"};
 }
 
-// --- 主运行 ---
+/* 每个场景的针对性优先话术侧重 */
+const TALK = {
+  "面子":  {stage:"阶段2·给台阶", tip:"核心是给对方体面收场的台阶，不说『错』只说『可能』，肯定双方价值"},
+  "利益":  {stage:"阶段3·固化条款", tip:"核心是谈可量化条件，给方案、做书面化，利益对等交换"},
+  "情绪":  {stage:"阶段1·先情后利", tip:"核心是先让情绪被看见，用『翻译闹』挖出表层诉求背后的真实需求"},
+  "程序":  {stage:"阶段1+2·去黑箱", tip:"核心是公开透明、给出说法，先消解『流程不公感』再谈事"}
+};
+
+/* 调解话术三阶段库 */
+const LIB = {
+  "阶段1·先情后利":[
+    "今天请两位来，不是让你们再吵一遍的，是我来听你们说的。",
+    "你们能坐下来，本身就是想解决问题，我先为这个感谢你们。",
+    "您反复提到表面这个诉求，我想问，这背后是不是还有别的顾虑？"
+  ],
+  "阶段2·给台阶":[
+    "这件事打了这么多年，我看两家其实都是受害者。",
+    "咱们都不说谁『错』，只说『可能』，行不行？",
+    "您是这片第一个主动配合的，带了个好头。",
+    "如果今天解决不了，往后抬头不见低头见，这日子不好过。"
+  ],
+  "阶段3·固化条款":[
+    "咱们把这个结果写下来，双方都确认，往后就按这个来。",
+    "过一阵我会再来看看情况，有反复咱们再一起想办法。"
+  ]
+};
+
+/* 39案例库精选（可匹配） */
+const CASES = [
+  {id:12,t:"四年积案·邻里土地纠纷",type:"ZR-E",kw:["土地","信访","邻里","积案"],sol:"『信访-调解』闭环：政府最小介入(S1)→双方自行和解；背靠背摸底后促成书面了结"},
+  {id:18,t:"八年土地纠纷·背靠背调解",type:"ZR-E",kw:["土地","八年","背靠背","积案"],sol:"背靠背破信息不对称：分别听诉求→引到平等和解→书面闭环"},
+  {id:32,t:"漏水纠纷·柔性司法",type:"ZR-E",kw:["漏水","邻里","柔性"],sol:"柔性司法：不判对错，先看实际损害→给台阶→促成修复与谅解"},
+  {id:21,t:"宾阳50年跨镇山林积案",type:"ZR-E",kw:["山林","五十","积案","跨镇"],sol:"情理法三维化解：情(体面)+理(是非)+法(边界)，情理法递进"},
+  {id:13,t:"一条公用道十年邻里战争",type:"ZR-E",kw:["公用","通道","道路","邻里"],sol:"政府调而不判：背靠背→双方让步各留余地→书面协议"},
+  {id:39,t:"西瓜皮引发邻里大战·沟通缺位",type:"ZR-E",kw:["邻居","沟通","小事","误会"],sol:"先翻译闹挖出真需求→第一时间破沟通缺位→给台阶收场"},
+  {id:3,t:"广西大化五字工作法·历史通道",type:"CR-E",kw:["历史","通道","共损","五字"],sol:"五字工作法流程化：共损型先止损→再协商程序→闭环"},
+  {id:10,t:"保险拒赔·综治调解",type:"CR-E",kw:["保险","拒赔","赔偿"],sol:"保险框架清晰：按条款定责→共损避免两败→争取合理赔付"},
+  {id:7,t:"六步工作法调解邻里纠纷",type:"CR-E",kw:["六步","邻里"],sol:"六步工作法：摸底→定性→分别劝和→协商→书面→回访"},
+  {id:14,t:"菜单式矛盾调处·共益设计",type:"CB-E",kw:["菜单","共益","选择"],sol:"群众点菜政府送餐：提供多方案让双方选，帕累托最优路径"},
+  {id:29,t:"六尺巷工作法·租赁纠纷",type:"CB-E",kw:["租赁","六尺巷","情法"],sol:"六尺巷文化调和：『让一步海阔天空』→情法两解"},
+  {id:31,t:"四年连环纠纷·溯源调解",type:"CB-U",kw:["连环","溯源","多起"],sol:"溯源调解：找矛盾根源→一起解决，避免按下葫芦浮起瓢"},
+  {id:4,t:"56户建房纠纷·群体利益",type:"ZR-U",kw:["建房","群体","多户","56"],sol:"群体利益冲突：政府主导(S2)→分户差异化处理→防抱团激化"},
+  {id:19,t:"油罐车三方连环纠纷",type:"CR-P",kw:["油罐","三方","连环"],sol:"三方+信息不对称：先转虚拟完全信息→注入调解员偏好→三方共同方案"},
+  {id:17,t:"婚恋纠纷·隐蔽化反复化",type:"MX-A",kw:["婚","情感","反复"],sol:"情感利益不可量化不建模：走经验+认知层，先彻查反复根源再谈"},
+  {id:28,t:"遗产纠纷·案结家不散",type:"MX-A",kw:["遗产","家事","兄弟"],sol:"案结≠家不散：先顾感情→再分财产，防止赢了官司散了家"}
+];
+
+/* ============ 判据引擎 ============ */
+function estimate(ans){
+  // r 迫切度: 主要看Q2升级程度 + Q3
+  let r=0;
+  if(ans.q2>=1)r+=0.1;
+  if(ans.q2>=2)r+=0.3;
+  if(ans.q2>=3)r+=0.5;
+  if(ans.q2>=4)r+=0.7;
+  if(ans.q2>=5)r+=0.9;
+  r+=ans.q3*0.05;
+  if(ans.q3>=3)r+=0.1;
+  r=Math.min(1,r);
+  // a 不可收拾度: Q2 + Q5谈崩
+  let a=0;
+  a+=ans.q2*0.12;
+  a+=ans.q5*0.08;
+  if(ans.q2>=4)a+=0.15;
+  if(ans.q2>=5)a+=0.2;
+  if(ans.q5>=3)a+=0.1;
+  a=Math.min(1.1,a);
+  return {r,a};
+}
+
+function judge(ans){
+  const {r,a}=estimate(ans);
+  const tt=timeTable(Math.min(a,0.99));
+  // L1 想动手
+  const L1=r>=0.45;
+  // L2 还没不可收拾
+  const L2=a<0.7;
+  // L3 差距不太大
+  const L3=Math.abs(ans.q3-2)<=1.5;
+  // L4 信息够不够
+  const L4=ans.q4===1;
+  // L5 传递层级 <=2（问答5结合场景隐式）
+  const L5=ans.q2<=3;
+  // 五态判定
+  let state,stateHint;
+  if(ans.q2>=4){ state="🔴 提前关闭（应急）"; stateHint="已发生聚集/动手/堵路甚至上访，危机状态，话术让位于安全+上报名，不强行调解。"; }
+  else if(!L1){ state="🟢 未启动"; stateHint="各方还没到『想动手』的程度，窗口未开，监测+建立联系。"; }
+  else if(L1&&L2&&L3&&L5){ state="🟢 窗口打开（最佳）"; stateHint="标准调解流程：先情后利→给台阶→固化条款。"; }
+  else if(L1&&L2&&!L4){ state="🟡 窗口收窄（加速）"; stateHint="信息不足，先摸底挖真需求，再定调解方案，直接开会易失败。"; }
+  else if(!L2){ state="🟠 窗口关闭"; stateHint="已到不可收拾，标准调解失效，转制度渠道（上报/裁决），但认真对待诉求。"; }
+  else { state="🟢 窗口打开（可调）"; stateHint="存在可调空间，走标准调解流程。"; }
+  return {L1,L2,L3,L4,L5,state,stateHint,r,a,tt};
+}
+
+/* 案例匹配 */
+function matchCases(ans){
+  const txt=ans.desc||"";
+  const scene=SCENES[ans.scene]||{};
+  const sceneWords=scene.keywords||[];
+  const all=sceneWords.join(" ");
+  return CASES.filter(c=>{
+    let score=0;
+    c.kw.forEach(k=>{ if(all.includes(k)||txt.includes(k))score++; });
+    return score>0 || c.type.includes(ans.typeGuess||"");
+  }).slice(0,3);
+}
+
+/* ============ UI 构建 ============ */
+const sceneTabs=document.getElementById("sceneTabs");
+Object.keys(SCENES).forEach(k=>{
+  const b=document.createElement("button");
+  b.className="tab"; b.textContent=SCENES[k].name; b.dataset.scene=k;
+  b.onclick=()=>selectScene(k,b);
+  sceneTabs.appendChild(b);
+});
+let selScene="yiqi"; let selTab=null;
+function selectScene(k,b){
+  selScene=k;
+  document.querySelectorAll(".tabs .tab").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active"); selTab=b;
+  document.getElementById("sceneDesc").textContent=SCENES[k].desc;
+  buildQuiz();
+}
+selectScene("yiqi",sceneTabs.firstChild);
+
+function buildQuiz(){
+  const q=document.getElementById("quiz");
+  q.innerHTML="";
+  // 描述输入
+  q.innerHTML+='<label>描述一下矛盾情况（选填，用于案例匹配）</label><textarea id="qDesc" rows="2" placeholder="例如：两家为院墙位置吵了多年，最近又动起手来"></textarea>';
+  // Q1 类型（预填场景类型，可改）
+  q.innerHTML+='<label>矛盾核心性质</label><div class="radios" id="qType"></div>';
+  ["利益纠纷","面子纠纷","情绪纠纷","程序纠纷"].forEach(t=>{
+    const inp='<label><input type="radio" name="qtype" value="'+t+'"> '+t+'</label>';
+    document.getElementById("qType").insertAdjacentHTML("beforeend",inp);
+  });
+  // 预选场景对应类型
+  const defType=SCENES[selScene].type+"纠纷";
+  document.querySelectorAll('input[name=qtype]').forEach(x=>{ if(x.value===defType)x.checked=true; });
+  // Q2-Q5
+  const items=[
+    {id:"q2",label:"升级程度：现在到哪一步了？",opts:ENG.Q2},
+    {id:"q3",label:"双方状态：谁更着急？",opts:ENG.Q3},
+    {id:"q4",label:"信息清晰度：双方诉求摸清了吗？",opts:ENG.Q4},
+    {id:"q5",label:"谈过几次？",opts:ENG.Q5}
+  ];
+  items.forEach(it=>{
+    let html='<label>'+it.label+'</label><div class="radios">';
+    it.opts.forEach(o=>{ html+='<label><input type="radio" name="'+it.id+'" value="'+o.v+'"> '+o.t+'</label>'; });
+    html+='</div>';
+    q.insertAdjacentHTML("beforeend",html);
+  });
+  // 默认选中第一项
+  ["q2","q3","q4","q5"].forEach(id=>{ document.querySelector('input[name='+id+'][value="1"]').checked=true; });
+  document.querySelector('input[name=q5][value="0"]').checked=true;
+}
+
+document.getElementById("runBtn").onclick=run;
+
+function readAns(){
+  const getV=(n)=>{ const e=document.querySelector('input[name='+n+']:checked'); return e?parseInt(e.value):null; };
+  const getType=()=>{ const e=document.querySelector('input[name=qtype]:checked'); return e?e.value.replace("纠纷",""):"利益"; };
+  return {
+    scene:selScene, desc:document.getElementById("qDesc").value,
+    type:getType(), q2:getV("q2"), q3:getV("q3"), q4:getV("q4"), q5:getV("q5")
+  };
+}
+
 function run(){
-  const get=(id)=>document.getElementById(id).value;
-  const q1=get('q1'),q2=get('q2'),q3=get('q3'),q4=get('q4'),q5=get('q5');
-  if(!q1||q2===''||q3===''||q4===''||q5===''){alert('请完成 Q1-Q5 五个问题');return;}
+  const ans=readAns();
+  if(ans.q2===null){ alert("请完成问卷"); return; }
+  const J=judge(ans);
+  const typeName=ans.type+"纠纷";
+  const talk=TALK[ans.type]||TALK["利益"];
+  const cases=matchCases(ans);
+  const res=document.getElementById("result");
 
-  const res=compute({q1,q2,q3,q4,q5});
+  document.getElementById("rBadge").textContent=J.tt.risk;
+  document.getElementById("rBadge").className="badge "+J.tt.risk;
 
-  // 风险分级渲染
-  const badge=document.getElementById('riskBadge');
-  const map={低:['风险级别：🟢 低','risk-low'],中:['风险级别：🟡 中','risk-mid'],高:['风险级别：🟠 高','risk-high'],极高:['风险级别：🔴 极高','risk-veryhigh']};
-  badge.className='badge '+map[res.risk][1];
-  badge.textContent=map[res.risk][0];
-  const pct={低:20,中:50,高:75,极高:95}[res.risk];
-  document.getElementById('riskMeter').style.width=pct+'%';
-  document.getElementById('riskDesc').innerHTML=`矛盾类型：${TYPE_META[q1].name}（${TYPE_META[q1].tip}）<br>介入迫切度 r ≈ ${res.ri.toFixed(2)} ｜ 不可收拾度 a ≈ ${res.ai.toFixed(2)}`;
-  document.getElementById('windowInfo').textContent=`剩余干预窗口：约 ${res.days}（${res.window}节奏）`;
-
-  // 状态策略
-  const stLine=document.getElementById('statusLine');
-  const stateInfo={
-    '未启动':['🟢 窗口未开 · 监测联系', '各方还没到想动手的程度。策略：监测+建立联系，别急着介入，先摸情况。'],
-    '打开':['🟢 窗口打开 · 最佳介入', '判据全过（L1+L2+L3+L4+L5）。策略：立即标准调解流程，此时介入成本最低、成功率最高。'],
-    '收窄':['🟡 窗口收窄 · 加速', 'L4信息不足（一方诉求模糊）。策略：先摸底、分别了解真实诉求，再定调解方案——直接开会易失败。'],
-    '关闭':['🟠 窗口关闭 · 制度渠道', 'a≥0.7，已到不可收拾边缘。策略：不再强行自行调解，走制度渠道（上报/裁决），同时做好疏导。'],
-    '提前关闭':['🔴 提前关闭 · 危机管理', 'a≥1.0，不可逆。策略：立即应急处理，安全第一，介入人群疏导+现场管控，调解让位于处置。']
-  }[res.state];
-  stLine.textContent=stateInfo[0];
-  document.getElementById('strategy').textContent=stateInfo[1];
-
-  // 判据引用
-  const Ls=[]; if(res.L1)Ls.push('L1✓');else Ls.push('L1✗');
-  Ls.push(res.L2?'L2✓':'L2✗'); Ls.push(res.L3?'L3✓':'L3✗');
-  Ls.push(res.L4?'L4✓':'L4✗'); Ls.push(res.L5?'L5✓':'L5✗');
-  document.getElementById('judgeRef').innerHTML='<p style="font-size:.8em;color:var(--muted);margin-top:8px">判据引用：'+Ls.join(' ')+' → 状态【'+res.state+'】</p>';
-
-  // 话术
-  document.getElementById('talk').innerHTML=buildTalk(q1,res.state,res.high);
-
-  // 高危预警
-  document.getElementById('dangerWarn').style.display=res.high?'block':'none';
-
-  // 滚动到结果
-  const rc=document.getElementById('resultCard');
-  rc.classList.add('show');
-  rc.scrollIntoView({behavior:'smooth'});
+  let h="";
+  // 风险仪表盘
+  h+='<div class="gauge"><div class="lbl">风险级别</div><div class="val">'+J.tt.risk+'</div><div class="lbl">剩余窗口</div><div class="val">'+J.tt.days+'</div></div>';
+  h+='<div class="metric">';
+  h+='<div class="mbox"><div class="k">矛盾类型</div><div class="v">'+typeName+'</div></div>';
+  h+='<div class="mbox"><div class="k">调解窗口状态</div><div class="v">'+J.state+'</div></div>';
+  h+='<div class="mbox"><div class="k">迫切度 r='+J.r.toFixed(2)+'</div><div class="v">'+(J.L1?"已触发介入":"未触发")+'</div></div>';
+  h+='<div class="mbox"><div class="k">不可收拾度 a='+J.a.toFixed(2)+'</div><div class="v">'+(J.L2?"尚可调解":"不可收拾")+'</div></div>';
+  h+='</div>';
+  // 高危警示
+  if(!J.L2){
+    h+='<div class="warn"><b>⚠️ 高危预警：</b>已到'+J.state+'，需立即按制度渠道上报/应急，不得仅建议自行调解。</div>';
+  }
+  // 路径
+  h+='<div class="sec">🎯 调解路径（'+J.state+'）</div>';
+  h+='<p style="font-size:14px;color:#555">'+J.stateHint+' '+talk.tip+'</p>';
+  // 话术侧重
+  h+='<div class="sec">🗣️ 分阶段话术（侧重：'+talk.stage+'）</div>';
+  h+='<div class="steps">';
+  const stages= J.state.includes("提前关闭")||J.state.includes("关闭")
+    ? ["阶段3·固化条款"]
+    : ["阶段1·先情后利","阶段2·给台阶","阶段3·固化条款"];
+  stages.forEach((s,n)=>{
+    if(J.state.includes("收窄")&&s==="阶段1·先情后利"){h+='<div class="st"><b>'+s+'（加速·压缩）</b> 窗口收窄，没时间慢慢处理情绪，直接进给台阶环节。</div>';return;}
+    const lines=LIB[s];
+    if(lines){h+='<div class="st"><b>'+s+'</b>';lines.forEach(l=>{h+='<div style="margin-top:4px;color:#444">· '+l+'</div>';});h+='</div>';}
+  });
+  h+='</div>';
+  // 案例匹配
+  if(cases.length){
+    h+='<div class="sec">📚 相似参考案例</div>';
+    cases.forEach(c=>{
+      h+='<div class="casebox"><div class="t">#'+c.id+' '+c.t+' <span class="pill">'+c.type+'</span></div><div class="m">'+c.sol+'</div></div>';
+    });
+  }
+  document.getElementById("rContent").innerHTML=h;
+  res.classList.add("show");
+  document.getElementById("gmcrBox").innerHTML="";
 }
 
-function reset(){
-  document.getElementById('desc').value='';
-  ['q1','q2','q3','q4','q5'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('resultCard').classList.remove('show');
-  document.getElementById('dangerWarn').style.display='none';
+/* ============ GMCR 稳定性判断（专业） ============ */
+document.getElementById("proBtn").onclick=function(){
+  const ans=readAns();
+  const J=judge(ans);
+  const box=document.getElementById("gmcrBox");
+  if(!J.L2 || J.a>=0.7){
+    box.innerHTML='<div class="warn"><b>不适合 GMCR 建模：</b>矛盾已到不可收拾或危机状态，稳定性分析无意义，优先上报/应急。</div>';
+    return;
+  }
+  const enc=encodeGMCR(ans);
+  box.innerHTML=enc;
+};
+
+function encodeGMCR(ans){
+  // 简化 GMCR：基于类型确定利益结构 + 信息维度 + 稳定性推演
+  const A= ans.type==="面子" ? (ans.q3>=3?"共损CR":"零和ZR")
+          : ans.type==="情绪" ? "共损CR"
+          : ans.type==="程序" ? "混合MX" : "零和ZR";
+  const B= ans.q4===1 ? "完全信息E" : (ans.q4===2?"部分信息U":"模糊A");
+  const N= ans.q2>=4 ? "网络型N>7(不建模)" : "双边N≤3(可建模)";
+  const stable= J.a<0.5 ? "存在稳定均衡（可调）" : "均衡不稳定（窗口收窄）";
+  let h="";
+  h+='<div class="sec">🔬 GMCR 博弈建模（专业模式）</div>';
+  h+='<div class="metric">';
+  h+='<div class="mbox"><div class="k">利益结构</div><div class="v">'+A+'</div></div>';
+  h+='<div class="mbox"><div class="k">信息对称</div><div class="v">'+B+'</div></div>';
+  h+='<div class="mbox"><div class="k">参与者规模</div><div class="v">'+N+'</div></div>';
+  h+='<div class="mbox"><div class="k">均衡稳定性</div><div class="v" style="font-size:14px">'+stable+'</div></div>';
+  h+='</div>';
+  h+='<div class="hl">'+(J.a<0.5 ? "当前存在可实现的稳定解，建议走标准调解促成双方达成帕累托方案。" : "均衡在漂移，需在窗口关闭前介入，或转制度渠道。")+'</div>';
+  return h;
 }
+
+document.getElementById("sceneTabs").firstChild.click();
 </script>
 </body>
 </html>
