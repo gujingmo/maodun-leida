@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>矛盾雷达 3.0 · 调解案件闭合工具</title>
+<style>
+:root{--绿:#2ecc71;--黄:#f1c40f;--橙:#e67e22;--红:#e74c3c;--深:#16213e;--金:#c9a86a;--bg:#f5f6fa;--card:#fff;--line:#e3e6ee;--sub:#667}
+*{margin:0;box-sizing:border-box}
+body{font-family:'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:#223;line-height:1.6}
+.wrap{max-width:980px;margin:0 auto;padding:14px}
+header{display:flex;justify-content:space-between;align-items:center;background:var(--深);color:#fff;padding:14px 18px;border-radius:12px;flex-wrap:wrap;gap:8px}
+header h1{font-size:19px;letter-spacing:1px}
+.topbtns button{margin-left:6px;background:var(--金);color:#16213e;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:13px}
+nav{display:flex;gap:6px;margin:12px 0 6px;flex-wrap:wrap}
+nav button{background:#eef;border:none;padding:8px 14px;border-radius:20px;cursor:pointer;font-size:14px}
+nav button.on{background:var(--深);color:#fff}
+.card{background:var(--card);border-radius:10px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.05);margin-bottom:12px}
+label{font-size:13px;color:#445;display:block;margin:8px 0 3px}
+input,select,textarea{width:100%;padding:8px;border:1px solid var(--line);border-radius:6px;font-size:14px;font-family:inherit}
+.radios{display:flex;wrap:wrap;gap:8px;flex-wrap:wrap}
+.radios label{display:inline-flex;gap:6px;background:#f5f6fa;border:1px solid var(--line);padding:5px 10px;border-radius:6px;margin:0;font-size:13px}
+.btn{background:var(--深);color:#fff;border:none;padding:9px 16px;border-radius:7px;font-size:15px;cursor:pointer;margin-top:8px;width:100%}
+.btn2{background:var(--金);color:#16213e;width:auto;padding:6px 12px;font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+.tag{display:inline-block;border-radius:3px;padding:1px 7px;font-size:12px;margin-right:4px}
+.t0{background:#eee}.t-low{background:#d5f5e3}.t-mid{background:#fdebd0}.t-high{background:#fadbd8}.t-crit{background:#f5b7b1}
+.row{display:flex;gap:10px;flex-wrap:wrap}.row>*{flex:1;min-width:180px}
+.stat{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.stat div{background:#f8f9fc;border:1px solid var(--line);border-radius:8px;padding:8px 12px;min-width:100px}
+.stat b{font-size:18px}
+.sample{border-left:3px solid var(--金);background:#fdfbf6;padding:8px;margin:8px 0;border-radius:0 6px 6px 0}
+.small{font-size:12px;color:var(--sub)}
+footer{color:#aaa;text-align:center;font-size:12px;margin:18px 0}
+details summary{cursor:pointer;color:var(--深);font-weight:bold}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>⚡ 矛盾雷达 3.0 · 调节案件闭合工具</h1>
+  <div class="topbtns">
+    <button onclick="exportJSON()">导出全部</button>
+    <button onclick="importJSON()">导入</button>
+    <button onclick="wipeAll()">清空(需确认)</button>
+  </div>
+</header>
+<nav>
+  <button class="on" data-t="tab1" onclick="tab('tab1')">① 分诊</button>
+  <button data-t="tab2" onclick="tab('tab2')">② 案件工作台</button>
+  <button data-t="tab3" onclick="tab('tab3')">③ 反馈仪表</button>
+  <button data-t="tab4" onclick="tab('tab4')">④ 设置/说明</button>
+</nav>
+
+<!-- Tab1 分诊 -->
+<div id="tab1">
+  <div class="card">
+    <label>1. 矛盾场景</label>
+    <select id="scene">
+      <option value="邻里纠纷">邻里纠纷</option><option>征地拆迁</option><option>欠薪纠纷</option><option>物业纠纷</option><option>信访积案</option><option>情感家事</option><option>民生服务</option>
+    </select>
+    <label>2. 升级程度</label>
+    <select id="q2"><option value="1">还在说理</option><option value="2">已吵起来</option><option value="3">叫嚣/扬言</option><option value="4">聚集/动手</option><option value="5">上访/诉上</option></select>
+    <label>3. 双方状态</label>
+    <select id="q3"><option value="1">都不急</option><option value="2">一方很急</option><option value="3">都很急</option><option value="4">撂狠话/豁出去</option></select>
+    <label>4. 诉求清晰度</label>
+    <select id="q4"><option value="1">都清楚</option><option value="2">一方清楚</option><option value="3">都模糊</option></select>
+    <label>5. 谈过几次</label>
+    <select id="q5"><option value="0">没谈过</option><option value="1">1-2次</option><option value="3">3次+失败</option></select>
+    <label>人员/备注（用于建案）</label>
+    <div class="row"><div><label style="margin-top:0">当事人A</label><input id="pa" placeholder="甲方/邻里/单位"></div><div><label style="margin-top:0">当事人B</label><input id="pb" placeholder="乙方"></div></div>
+    <label>事件简述</label>
+    <textarea id="desc" rows="2" placeholder="一句到两句话描述"></textarea>
+    <button class="btn" onclick="judgeThenSave()">⚡ 评估并建档</button>
+    <div id="out" style="margin-top:10px"></div>
+  </div>
+</div>
+
+<!-- Tab2 工作台 -->
+<div id="tab2" style="display:none">
+  <div class="card">
+    <label>筛选状态</label>
+    <select id="fstat"><option value="">全部</option><option>监测</option><option>接案</option><option>调解</option><option>结案</option><option>上报</option></select>
+    <button class="btn2" onclick="listCases()">刷新列表</button>
+    <div id="caseList"></div>
+    <div id="caseDetail"></div>
+  </div>
+</div>
+
+<!-- Tab3 仪表 -->
+<div id="tab3" style="display:none">
+  <div class="card">
+    <div class="stat" id="statBox"></div>
+    <button class="btn2" style="margin-top:10px" onclick="exportSamples()">导出待标定样本(JSON)</button>
+    <h3 style="margin:14px 0 6px">待标定 / 已标定样本（A）</h3>
+    <div id="sampleList"></div>
+  </div>
+</div>
+
+<!-- Tab4 -->
+<div id="tab4" style="display:none">
+  <div class="card">
+    <h3>说明</h3>
+    <p class="small">本版为 2.0 升级：①分诊同 2.0；②案件工作台；③反馈仪表与样本（C/A）；④导出/导入协同与本地持久（D）。判据权重仍为工程近似，实证回标待样本≥N 后进行（这是自反刀1的预期遗留）。</p>
+    <details><summary>数据模型键</summary><p class="small">appData{settings, cases[], entries[], samples[]}；cases: id/type/pa/pb/sexp/date/q..{risk,window,state}/stat/timeline[]{t,act,who}/follow[] /report。 entries: caseId/est/actual/recid/note。 samples: caseId/estR/estA/corrR/corrA/reason。</p></details>
+  </div>
+</div>
+<footer>矛盾雷达 3.0 · 仅供调解辅助，高危必上报 · no-server local</footer>
+</div>
+
+<script>
+/* 判据引擎 (2.0 精简) */
+function estimate(q){let r=.15; q2=+q[1]; if(q2>=2)r+=.3; if(q2>=3)r+=.25; if(q2>=4)r+=.25; if(q2==5)r+=.15; r+= (+q[2])*.1; r=Math.min(r,1);
+ let a=q2*.12+(+q[4])*.08; if(q2>=4)a+=.3; a=Math.min(a,1); return {r:+r.toFixed(2),a:+a.toFixed(2)};}
+function ttAt(a){return a<.3?['低','&gt;30天']:a<.5?['低','14-30天']:a<.7?['中','7-14天']:a<.9?['高','3-7天']:['极高','&lt;3天'];}
+function judge(q){const {r,a}=estimate(q); const[s,d]=ttAt(a); let st; if(q2>=4) st='提前关闭·应急'; else if(r<.45)st='监测'; else if(a<.7) st='接案·调解'; else st='上报'; return {r,a,risk:s,win:d,state:st};}
+/* storage */
+const KEY='maodun3';
+let D={settings:{},cases:[],entries:[],samples:[]};
+function save(){localStorage.setItem(KEY,JSON.stringify(D));}
+function load(){try{const x=localStorage.getItem(KEY);if(x){const o=JSON.parse(x);D={...(o||{}),cases:o.cases||[],entries:o.entries||[],samples:o.samples||[]};}}catch(e){} }
+load();
+const $=id=>document.getElementById(id);
+function tab(t){
+ ['tab1','tab2','tab3','tab4'].forEach(n=>{const el=document.getElementById(n);if(el)el.style.display=(n===t?'block':'none');});
+ document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===(t||'tab1')));
+}
+tab('tab1');
+
+function uid(){return Math.random().toString(36).slice(2,8)+(Date.now()%1000);}
+function judgeThenSave(){
+ const q=[$('scene').value,+$('q2').value,+$('q3').value,+$('q4').value,+$('q5').value];
+ const j=judge(q);
+ const c={id:uid(),type:$('scene').value,pa:$('pa').value||'当事人A',pb:$('pb').value||'B',desc:$('desc').value,q2:q[1],est:j,stat: j.state.includes('应急')||j.state.includes('上报')?'监测待上报':'接案',date:new Date().toISOString(),timeline:[{t:new Date().toISOString(),act:'建档·评估',who:''}],follow:[],risk:j.risk};
+ D.cases.push(c); save();
+ // show meta
+ $('out').innerHTML='<div class="card"><b>风险:'+j.risk+'</b> 窗口:'+j.win+' r='+j.r+' a='+j.a+' 状态:'+j.state+' （案件已入工作台 id:'+c.id+'）<br><span class="small">高危/上报态请走应急流程并至工作台挂号“上报”。</span><input id="mkNote" placeholder="现场判断备注(可选)"></div>';
+}
+function riskColor(x){const m={低:'t-low',中:'t-mid',高:'t-high',极高:'t-crit'};return m[x]||'t0';}
+function listCases(){const f=$('fstat').value||'';const list=D.cases.filter(c=>!f||c.stat===f);let h='<table><tr><th>#</th><th>类型</th><th>甲乙</th><th>风险</th><th>状态</th><th>时间</th><th>打开</th></tr>';
+ list.slice().reverse().forEach(c=>{h+='<tr><td>'+c.id+'</td><td>'+c.type+'</td><td>'+c.pa+' / '+c.pb+'</td><td><span class="tag '+riskColor(c.risk)+'">'+c.risk+'</span>'+(c.est.r?'<br>r'+c.est.r+'/a'+c.est.a:'')+'</td><td>'+c.stat+'</td><td class="small">'+String(c.date).slice(0,16).replace('T',' ')+'</td><td><button class="btn2" onclick="openCase('+"'"+c.id+"'"+')">打开</button></td></tr>';});
+ h+='</table>'+(list.length?'':'<span class="small">暂无</span>'); $('caseList').innerHTML=h;}
+function openCase(id){const c=D.cases.find(x=>x.id===id);if(!c)return;$('caseDetail').innerHTML='<h3>案件 '+id+' · '+c.type+'</h3>'+
+ '<div class="small">当事人: '+c.pa+' / '+c.pb+'<br>表述: '+(c.desc||'—')+'<br>风险:'+c.risk+' 窗口:'+(c.est.win||'')+' r='+(c.est.r||c.est||{}).r+' a='+(c.est.a||'')+' 状态:'+c.stat+'</div>'+
+ '<label>更新状态</label><select id="st_'+id+'"><option>接案</option><option>调解</option><option>监测</option><option>上报</option><option>结案</option></select>'+
+ '<label>跟进/介入记录</label><div><input style="display:block" id="act_'+id+'" placeholder="做了什么/进展"><button class="btn2" onclick="addAct('+"'"+id+"'"+')">加一条</button><button class="btn2" onclick="setStat('+"'"+id+"'"+')">应用状态</button></div>'+
+ '<div id="actlist_'+id+'"></div>'+
+ '<label>回访记录</label><input style="display:block" id="fv_'+id+'" placeholder="回访内容（选填）"><button class="btn2" onclick="addFollow('+"'"+id+"'"+')">记录回访</button>'+
+ '<hr><button class="btn2" onclick="enterResult('+"'"+id+"'"+')">填写实际结果(入仪表)</button>'+
+ '<div id="rx_'+id+'"></div>';
+ renderActs(id);}
+function renderActs(id){const c=D.cases.find(x=>x.id===id);if(!c)return;let h='<div class="small"><b>timeline:</b><br>'+(c.timeline||[]).map(x=>String(x.t).slice(5,16).replace('T',' ')+' '+x.act+(x.who?'('+x.who+')':'')).join('<br>')||'无';h+= (c.follow&&c.follow.length?'<br><b>回访:</b>'+c.follow.map(f=>f).join(' <br> '):''); h+='</div>'; const el=document.getElementById('actlist_'+id); if(el)el.innerHTML=h;}
+function addAct(id){const t=document.getElementById('act_'+id).value.trim();if(!t)return;const c=D.cases.find(x=>x.id===id);c.timeline.push({t:new Date().toISOString(),act:t,who:'调解员'});save();renderActs(id);}
+function setStat(id){const s=document.getElementById('st_'+id).value;const c=D.cases.find(x=>x.id===id);c.stat=s;save();openCase(id);listCases();}
+function addFollow(id){const t=document.getElementById('fv_'+id).value.trim();const c=D.cases.find(x=>x.id===id);if(!t){c.follow=c.follow||[]}c.follow.push(t||'回访(无文字)');save();renderActs(id);}
+function enterResult(id){$('rx_'+id).innerHTML='<div class="card"><label>结果(re-离散)</label><select id="res_'+id+'"><option value="真解">真解(复发不再)</option><option value="暂缓">暂缓</option><option value="复发">复发</option><option value="上报未解">上报/未解</option></select><label>是否命中系统分级</label><select id="hit_'+id+'"><option value="1">命中</option><option value="0">未命中</option></select><label>备注/实际时长(天)</label><input id="du_'+id+'" type="number" ><button class="btn" onclick="saveResult('+"'"+id+"'"+')">保存结果</button></div>';}
+function saveResult(id){const c=D.cases.find(x=>x.id===id);const res=document.getElementById('res_'+id).value;const hit=document.getElementById('hit_'+id).value;const du=document.getElementById('du_'+id).value;const noteInp=document.querySelector('#mkNote');D.entries.push({id:uid(),caseId:id,type:c.type,est:c.risk,estA:c.est&&c.est.a||'',actual:res,hit:+hit,dur:du||'',date:new Date().toISOString()});c.stat='结案';save();renderStat();document.getElementById('rx_'+id).innerHTML='<span class="small">已录入仪表 +'+(du||'')+'天 ·'+res+'</span>';listCases();tab('tab3');}
+function renderStat(){const e=D.entries;if(!e.length){$('statBox').innerHTML='<span>暂无结果样本</span>';$('sampleList').innerHTML='';return;}
+ const hit=e.filter(x=>x.hit).length;const rate=Math.round(hit/e.length*100);const rec=e.filter(x=>x.actual==='复发').length;const up=e.filter(x=>x.actual==='上报未解').length;
+ $('statBox').innerHTML='<div><b>'+e.length+'</b><br>结果样本</div><div><b>'+rate+'%</b><br>命中率(自评)</div><div><b>'+rec+'</b><br>复发</div><div><b>'+up+'</b><br>上报未解</div>';
+ let s=''; e.forEach(x=>{s+='<div class="sample">案件<'+x.type+'> 估级:'+x.est+' · 实际:'+x.actual+' 命中:'+(x.hit?'✓':'✗')+(x.dur?' · '+x.dur+'天':'')+'<br><button class="btn2" onclick="markCorrection('+"'"+x.id+"'"+')">修正 r/a(入待标定样本)</button><span id="crc_'+x.id+'"></span></div>';}); $('sampleList').innerHTML=s;}
+function markCorrection(entId){const e=D.entries.find(x=>x.id===entId);if(!e)return;placeCorrEditor(e);}
+function placeCorrEditor(e){const el=document.getElementById('crc_'+e.id);if(el)el.innerHTML='<div><label class="small">修正 r（原约'+(e.est?e.est:'—')+'）</label><input type="number" step="0.05" id="cr_'+(e.id)+'"><label class="small">修正 a</label><input type="number" step="0.05" id="ca_'+(e.id)+'"><label class="small">原因</label><input id="ck_'+(e.id)+'"><button class="btn2" onclick="pushSample('+"'"+e.id+"'"+')">存样本</button></div>';}
+function pushSample(entId){const e=D.entries.find(x=>x.id===entId);const cr=document.getElementById('cr_'+e.id).value||'';const ca=document.getElementById('ca_'+e.id).value||'';const rk=document.getElementById('ck_'+e.id).value||'';D.samples.push({id:uid(),entId:entId,cr,ca,rk,date:new Date().toISOString()});save();document.getElementById('crc_'+e.id).innerHTML='<span class="small">✓已存待标定样本</span>';renderStat();}
+function exportSamples(){const blob=new Blob([JSON.stringify(D.samples,null,2)],{type:'application/json'});downloadBlob(blob,'maodun_samples_'+stamp()+'.json');}
+function exportJSON(){save();downloadBlob(new Blob([JSON.stringify(D,null,2)],{type:'application/json'}),'maodun3_'+stamp()+'.json');}
+function importJSON(){const inp=document.createElement('input');inp.type='file';inp.accept='application/json';inp.onchange=()=>{const f=inp.files&&inp.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const o=JSON.parse(rd.result);if(confirm('导入将覆盖当前全部数据，继续？')){D={settings:o.settings||{},cases:o.cases||[],entries:o.entries||[],samples:o.samples||[]};save();renderStat();}}catch(e){alert('导入格式有误')}};rd.readAsText(f)};inp.click();}
+function wipeAll(){if(confirm('清空全部本地数据？')){localStorage.removeItem(KEY);load();renderStat();alert('已清空');}}
+function downloadBlob(b,name){const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000);}
+function stamp(){const d=new Date();return ''+d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');}
+renderStat();
+</script>
+</body>
+</html>
