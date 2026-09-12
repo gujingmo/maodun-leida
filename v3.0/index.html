@@ -57,9 +57,17 @@ details summary{cursor:pointer;color:var(--深);font-weight:bold}
 <div id="tab1">
   <div class="card">
     <label>1. 矛盾场景</label>
-    <select id="scene">
-      <option value="邻里纠纷">邻里纠纷</option><option>征地拆迁</option><option>欠薪纠纷</option><option>物业纠纷</option><option>信访积案</option><option>情感家事</option><option>民生服务</option>
+    <select id="scene" onchange="showSceneDeep()">
+      <option value="邻里纠纷">邻里纠纷</option><option>征地拆迁</option><option>欠薪纠纷</option><option>物业纠纷</option><option>信访积案</option><option>情感家事</option><option>民生服务</option><option value="酒局/饮酒致祸">酒局/饮酒致祸</option>
     </select>
+    <div id="drinkExtra" style="display:none;border-top:1px dashed #dde;margin-top:10px;padding-top:8px">
+      <div class="hint"><b>饮酒专项</b>（选“酒局/饮酒致祸”时自动展示）</div>
+      <label>酒局性质</label>
+      <select id="jType"><option>公务/半公务接待</option><option>单位团建</option><option>家庭/亲友婚宴</option><option>朋友聚餐</option><option>商务宴请</option><option>农村红白事</option></select>
+      <label>已知风险信号（可多描述）</label>
+      <textarea id="jRisk" rows="2" placeholder="例如：有人正在服药 / 已连续多场 / 席间劝酒激烈 / 有人说要开车来 / 有人最近情绪不好"></textarea>
+      <div class="row"><div><label style="margin-top:0">饮酒人数</label><input id="jN" type="number" min="0" placeholder="8"></div><div><label style="margin-top:0">驾车来的人数</label><input id="jDrive" type="number" min="0" placeholder="3"></div></div>
+    </div>
     <label>2. 升级程度</label>
     <select id="q2"><option value="1">还在说理</option><option value="2">已吵起来</option><option value="3">叫嚣/扬言</option><option value="4">聚集/动手</option><option value="5">上访/诉上</option></select>
     <label>3. 双方状态</label>
@@ -114,7 +122,56 @@ details summary{cursor:pointer;color:var(--深);font-weight:bold}
 function estimate(q){let r=.15; q2=+q[1]; if(q2>=2)r+=.3; if(q2>=3)r+=.25; if(q2>=4)r+=.25; if(q2==5)r+=.15; r+= (+q[2])*.1; r=Math.min(r,1);
  let a=q2*.12+(+q[4])*.08; if(q2>=4)a+=.3; a=Math.min(a,1); return {r:+r.toFixed(2),a:+a.toFixed(2)};}
 function ttAt(a){return a<.3?['低','&gt;30天']:a<.5?['低','14-30天']:a<.7?['中','7-14天']:a<.9?['高','3-7天']:['极高','&lt;3天'];}
-function judge(q){const {r,a}=estimate(q); const[s,d]=ttAt(a); let st; if(q2>=4) st='提前关闭·应急'; else if(r<.45)st='监测'; else if(a<.7) st='接案·调解'; else st='上报'; return {r,a,risk:s,win:d,state:st};}
+/* ===== 判据引擎（线1a：每步带依据/权重/可证伪点） ===== */
+function judgeChain(q){
+ // q = [scene, q2, q3, q4, q5]
+ const q2=q[1], q3=q[2], q4=q[3], q5=q[4];
+ // r 迫切度：逐项累加并记录依据
+ let r=0; const rTrace=[];
+ if(q2>=2){r+=0.30; rTrace.push('升级程度=已吵架 +0.30');}
+ if(q2>=3){r+=0.25; rTrace.push('升级程度=叫器/扬言 +0.25');}
+ if(q2>=4){r+=0.25; rTrace.push('升级程度=聚集/动手 +0.25');}
+ if(q2>=5){r+=0.15; rTrace.push('升级程度=上访/诉上 +0.15');}
+ if(q3>=3){r+=0.10; rTrace.push('双方状态=都很急 +0.10');}
+ if(q3===2){r+=0.05; rTrace.push('双方状态=一方急 +0.05');}
+ r=Math.min(1,+r.toFixed(2));
+ // a 不可收拾度
+ let a=0; const aTrace=[];
+ a+=q2*0.12; aTrace.push('升级程度 '+q2+' × 0.12 = +'+(q2*0.12).toFixed(2));
+ a+=q5*0.08; aTrace.push('谈崩次数 '+q5+' × 0.08 = +'+(q5*0.08).toFixed(2));
+ if(q2>=4){a+=0.30; aTrace.push('已聚集/动手加码 +0.30');}
+ a=Math.min(a,1); a=+a.toFixed(2);
+ // 判据逐条（带判据编号/结论/依据/可证伪）
+ const L=[];
+ L.push({id:'L1', name:'是否已有一方想动', ok:r>=0.45,
+   basis:'r='+r+'，阈值 0.45', weight:'闸门项',
+   falsify:'若当事人自述“已经受不了/想闹”但 r 仍<0.45，则本项误判——应重估升级程度'});
+ L.push({id:'L2', name:'是否还未到不可收拾', ok:a<0.7,
+   basis:'a='+a+'，阈值 0.7', weight:'闸门项（不过则转制度/应急）',
+   falsify:'若双方仍愿意坐下谈、且近一月无聚集，却被判 a≥0.7，则高估——查是否把“撂狠话”误当“已聚集”'});
+ L.push({id:'L3', name:'双方差距是否不太大', ok:Math.abs(q3-2)<=1.5,
+   basis:'双方状态差='+Math.abs(q3-2), weight:'辅助项',
+   falsify:'若一方急到准备行动、另一方完全不在意（差>1.5），则窗口其实未开——需先做单方工作'});
+ L.push({id:'L4', name:'信息是否摸清', ok:q4===1,
+   basis:'诉求清晰度='+(q4===1?'都清楚':q4===2?'一方模糊':'都模糊'), weight:'决定能否直接开会',
+   falsify:'若双方其实各自都清楚诉求（只是未当面说），却被判“信息不足”，则先摸底是白做——应直接进调解'});
+ L.push({id:'L5', name:'传递层级是否≤ 2', ok:q2<=3,
+   basis:'升级程度='+q2, weight:'辅助项',
+   falsify:'若矛盾虽已上访但层级实际很短（直接找主管），则本项误报“应先建通道”'});
+ // 五态
+ let state, stateHint;
+ if(q2>=4){ state='提前关闭（应急）'; stateHint='已发生聚集/动手/上访，危机状态：安全+上报优先，不强行调解。'; }
+ else if(r<0.45){ state='未启动'; stateHint='尚未到“想动手”的程度，监测+建立联系。'; }
+ else if(a<0.7 && q4===1 && q2<=3){ state='窗口打开（最佳）'; stateHint='标准调解三阶段：先情后利→给台阶→固化条款。'; }
+ else if(a<0.7 && q4!==1){ state='窗口收窄（加速）'; stateHint='信息未摸清：先分别摸底挖真需求，再定调解方案。'; }
+ else { state='窗口关闭'; stateHint='已到不可收拾：转制度渠道（上报/裁决），同时做好疏导。'; }
+ // 风险 & 窗口
+ const tt = a<0.3?['低','>30天']:a<0.5?['低','14-30天']:a<0.7?['中','7-14天']:a<0.9?['高','3-7天']:['极高','<3天'];
+ return { r, a, rTrace, aTrace, L, state, stateHint, risk:tt[0], win:tt[1] };
+}
+function judge(q){ // 保留兼容接口
+ const j=judgeChain(q); return {r:j.r,a:j.a,risk:j.risk,win:j.win,state:j.state};
+}
 /* storage */
 const KEY='maodun3';
 let D={settings:{},cases:[],entries:[],samples:[]};
@@ -123,21 +180,343 @@ function load(){try{const x=localStorage.getItem(KEY);if(x){const o=JSON.parse(x
 load();
 const $=id=>document.getElementById(id);
 function tab(t){
- ['tab1','tab2','tab3','tab4'].forEach(n=>{const el=document.getElementById(n);if(el)el.style.display=(n===t?'block':'none');});
+ ['tab1','tab2','tab3','tab4','tab5'].forEach(n=>{const el=document.getElementById(n);if(el)el.style.display=(n===t?'block':'none');});
  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===(t||'tab1')));
 }
 tab('tab1');
 
 function uid(){return Math.random().toString(36).slice(2,8)+(Date.now()%1000);}
+
+/* ===== 线7：39案例库（据库内-矛调39案例_重标注与均衡填充 结构化） ===== */
+const CASE_LIB=[
+ {id:4,  t:'红河蒙自56户建房纠纷',        type:'ZR-U', n:'3-5', kw:['建房','群体','56','土地','拆迁'],sol:'群体利益冲突：政府主导协调，分户差异化处理，防抱团激化'},
+ {id:8,  t:'56户村民群体纠纷调解',        type:'ZR-U', n:'3-5', kw:['群体','村民','56','集体'],sol:'群体性：分层沟通（先代表后群众），逐个击破共识点'},
+ {id:12, t:'四年积案——邻里土地"信访-调解"闭环', type:'ZR-E', n:'2', kw:['土地','积案','信访','邻里','四年'],sol:'政府最小介入(S1)→双方自解；建立信访-调解闭环机制'},
+ {id:13, t:'公用道引发的十年邻里战争',    type:'ZR-E', n:'2', kw:['公用','通道','道路','十年','邻里'],sol:'政府调而不判：双方僵持，引导各自让步、书面协议'},
+ {id:18, t:'八年土地纠纷——"背靠背"调解法', type:'ZR-E', n:'2', kw:['土地','八年','背靠背','积案'],sol:'背靠背破信息不对称→引到双方自行和解；是经典范式'},
+ {id:21, t:'宾阳50年跨镇山林积案——情理法三维', type:'ZR-E', n:'2', kw:['山林','50年','跨镇','积案','情理法'],sol:'情理法三维化解：情(体面)+理(是非)+法(边界)递进'},
+ {id:32, t:'法官巧解漏水纠纷——柔性司法',  type:'ZR-E', n:'2', kw:['漏水','邻里','柔性','司法'],sol:'柔性司法：不判对错先看实际损害→给台阶→修复谅解'},
+ {id:36, t:'六小时攻坚：员工宿舍突发疾病死亡赔偿', type:'ZR-E', n:'2', kw:['死亡','赔偿','突发','紧急性'],sol:'紧急性零和：快定责、给方案、限时闭环，防情绪升级'},
+ {id:37, t:'48小时化解坠亡赔偿（法院+综治中心）', type:'ZR-E', n:'2', kw:['坠亡','赔偿','综治','联动'],sol:'综治联动快处：法院+综治双通道，48小时内闭环'},
+ {id:38, t:'法官上门+村委联动——挽回三兄弟情', type:'ZR-E', n:'3', kw:['兄弟','家事','村委','亲情'],sol:'家事零和：上门+村委联动，先保亲情再分利益'},
+ {id:39, t:'西瓜皮引发的邻里大战——沟通缺位', type:'ZR-E', n:'2', kw:['邻里','沟通','小事','误会','西瓜皮'],sol:'先翻译闹挖真需求→破沟通缺位→给台阶收场'},
+ {id:3,  t:'广西大化"五字工作法"——历史通道', type:'CR-E', n:'2', kw:['历史','通道','共损','五字法'],sol:'共损型：流程化五字工作法，先止损再协商程序'},
+ {id:10, t:'少年求学梦：保险拒赔的综治调解', type:'CR-E', n:'2', kw:['保险','拒赔','赔偿','求学'],sol:'保险框架清晰：按条款定责，共损避免两败，争取合理赔付'},
+ {id:11, t:'物业纠纷示范判决——审理一案化解一片', type:'CR-E', n:'2', kw:['物业','示范','判决','群体'],sol:'示范判决：一案定标，同类批量参照，降低重复成本'},
+ {id:22, t:'焦作"法院+综治中心"五轮递进式调解', type:'CR-E', n:'2', kw:['递进','五轮','综治','法院'],sol:'递进式：一轮不成进二轮，逐轮缩小分歧至最小权威'},
+ {id:26, t:'河道纠纷四步调解法', type:'CR-E', n:'2', kw:['河道','四步','环境'],sol:'四步法+执行闭环：摸清—定性—协商—固化执行'},
+ {id:14, t:'"菜单式"矛盾调处：群众点菜政府送餐', type:'CB-E', n:'2', kw:['菜单','共益','点菜','选择'],sol:'共益设计：提供多方案让双方选，帕累托最优路径'},
+ {id:29, t:'六尺巷工作法——百万租赁纠纷', type:'CB-E', n:'2', kw:['租赁','六尺巷','情法','让'],sol:'六尺巷文化调和：让一步海阔天空，情法两解'},
+ {id:27, t:'物业纠纷当庭化解', type:'CB-E', n:'2', kw:['物业','当庭','信任'],sol:'当庭化解+信任修复：当场给承诺、当场止损'},
+ {id:31, t:'四年连环纠纷溯源调解', type:'CB-U', n:'2-3', kw:['连环','溯源','多起'],sol:'溯源调解：找共同根源一起解决，避免按下葫芦浮起瓢'},
+ {id:9,  t:'震楼神器对熊孩子——五年噪音纠纷', type:'MX-U', n:'2+', kw:['噪音','震楼','邻里','五年'],sol:'混合零和+情感因素：先停对抗手段，再谈生活规则'},
+ {id:19, t:'油罐车三方连环纠纷——两年僵局破冰', type:'CR-P', n:'3', kw:['油罐','三方','僵局','连环'],sol:'三方+信息不对称：先转虚拟完全信息，注入调解员偏好'},
+ {id:33, t:'两年校园纠纷积案——"三所联动"', type:'MX-U', n:'3', kw:['校园','三所','积案'],sol:'三角博弈简化：学校+家长+教委三方，先定责任框架'},
+ {id:34, t:'聋哑夫妇22万保管纠纷——"法院+残联"', type:'MX-U', n:'2+', kw:['聋哑','保管','残联','特殊'],sol:'特殊群体+信息不对称：引入辅助沟通，确保意思表示真实'},
+ {id:35, t:'跨境车辆买卖纠纷：双语调解', type:'MX-U', n:'2+', kw:['跨境','双语','买卖'],sol:'跨文化：先破语言壁垒，再按本地习惯与法律定框架'},
+ {id:17, t:'婚恋纠纷的隐蔽化与反复化', type:'MX-A', n:'2+', kw:['婚恋','情感','反复','隐蔽'],sol:'情感利益不可量化→不建模：走经验层，先彻查反复根源'},
+ {id:28, t:'遗产纠纷调解——"案子结了，家可能就散了"', type:'MX-A', n:'2+', kw:['遗产','家事','兄弟','散了'],sol:'案结≠家不散：先顾感情再分财产，防赢了官司散了家'},
+ {id:20, t:'48户村民土地纠纷——"法不责众"与多元解纷', type:'CB-U', n:'3-5', kw:['48户','土地','群体','法不责众'],sol:'群体+共益：代表协商制+多元解纷，避免法不责众'},
+ {id:30, t:'定西法院两案例入选最高法多元解纷案例库', type:'CR-E', n:'2', kw:['法院','入库','解纷'],sol:'法院+多元解纷：规范流程，形成可复制模板'}
+];
+/* 场景→类型倾向映射（用于匹配加权） */
+const SCENE_TYPE_HINT={
+ '邻里纠纷':['ZR-E','ZR-U','MX-U'],
+ '征地拆迁':['ZR-U','CB-U','ZR-E'],
+ '欠薪纠纷':['ZR-E','CB-U','CR-E'],
+ '物业纠纷':['CR-E','CB-E','CR-P'],
+ '信访积案':['ZR-E','CR-E','MX-U'],
+ '情感家事':['MX-A','ZR-E','CB-E'],
+ '民生服务':['CR-E','CB-E','ZR-U'],
+ '酒局/饮酒致祸':['ZR-E','MX-A','CR-E']
+};
+function matchCases(scene, q2, desc){
+ const txt=(desc||'')+' '+scene;
+ const hints=SCENE_TYPE_HINT[scene]||[];
+ return CASE_LIB.map(cs=>{
+  let s=0;
+  cs.kw.forEach(k=>{ if(txt.includes(k)) s+=3; });
+  const ti=hints.indexOf(cs.type);
+  if(ti===0)s+=4; else if(ti===1)s+=2; else if(ti===2)s+=1;
+  if(q2>=4 && /死亡|赔偿|坠亡|群体|聚集/.test(cs.kw.join(''))) s+=1;
+  return {cs, s};
+ }).filter(x=>x.s>0).sort((a,b)=>b.s-a.s).slice(0,3).map(x=>x.cs);
+}
+
+/* ===== 线2：7+1 场景专属深水判据树 ===== */
+const SCENE_DEEP={
+ '邻里纠纷':{q:'是“争事”还是“争气”？',branch:[['争事（利益：地界/漏水/噪音）','→ 走利益路径：谈条件、第三方评估、书面固化'],['争气（面子：谁对谁错/被轻视）','→ 走面子路径：给台阶、说“可能”不说“错”、当众给认可']],warn:'邻里纠纷最常见失败：只谈事不谈气，双方下不了台'},
+ '征地拆迁':{q:'争议是“补偿标准”还是“程序不公”？',branch:[['补偿标准（可量化）','→ 谈钱：公示可比案例、算清账、给可选方案'],['程序不公（黑箱感）','→ 给说法：公开流程、补公示、给申诉渠道，钱不是主钥匙']],warn:'失焦风险：把“程序质疑”当“要钱”处理，越谈越僵'},
+ '欠薪纠纷':{q:'是“有钱不给”还是“真没钱”？',branch:[['有钱不给（恶意拖欠）','→ 施压：工资保证金、监察介入、信用惩戒'],['真没钱（经营困难）','→ 保清偿：分期+优先清偿顺序+稳岗，避免一拍两散']],warn:'先查资金真相再定策略——用错手段会把人逼到绝路'},
+ '物业纠纷':{q:'矛盾核心是“钱”还是“服务”还是“话语权”？',branch:[['钱（物业费/费用透明）','→ 公开账目、公示服务标准'],['服务（保洁/安保/维修）','→ 先整改可感知的小事（最快降火）'],['话语权（业委会/开票权）','→ 给参与机制（比给钱更重要）']],warn:'物业纠纷最能引爆的是“不透明”，账不公开一切白搭'},
+ '信访积案':{q:'卡在“诉求本身”还是“多年无回音”？',branch:[['诉求本身（可解决）','→ 落实到人、限时答复、办结反馈'],['多年无回音（信任耗尽）','→ 领导包案+当面见+重新建关系（先解决“没人管”感）']],warn:'积案首要治疗“没人管”，不是直接谈方案'},
+ '情感家事':{q:'是“分家产/赡养义务”还是“关系保全”？',branch:[['财产/义务（可分割）','→ 先算清、再谈情，避免赢了官司散了家'],['关系保全（面子/亲情）','→ 案结≠家不散：留台阶、维护长辈尊严、回访']],warn:'家事最大风险：依法办对了，但家没了'},
+ '民生服务':{q:'问题是“个体错”还是“制度链太长”？',branch:[['个体错（单笔赔付/服务失误）','→ 就事论事、快赔快改'],['制度链太长（多部门推诿）','→ 首问负责+一口对外+限时终结（别让群众跑第二趟）']],warn:'民生类最伤信任的是“跑断腿”，先解决流程再看个案'},
+ '酒局/饮酒致祸':{q:'事发前有没有“可预见风险”？',branch:[['有（服药/驾车/强劝酒/连续场）','→ 责任加重：组织者与同桌均可能担责，必须完整体现护伴链'],['无（自愿且已尽提醒护送）','→ 责任主要在饮酒者本人，护伴痕迹是免责证据']],warn:'饮酒类案件定责关键：事前可预见性与护伴痕迹，两者都有证据才有话语权'}
+};
+function showSceneDeep(){
+ const s=$('scene').value;
+ // 酒局场景：展示饮酒专项
+ const de=document.getElementById('drinkExtra');
+ if(de)de.style.display=(s==='酒局/饮酒致祸')?'block':'none';
+ const d=SCENE_DEEP[s];
+ const box=document.getElementById('sceneDeep');
+ if(!box)return;
+ if(!d){box.innerHTML='';return;}
+ let h='<div class="sec">🧭 本场景深水判据</div><p style="font-size:14px"><b>先问：</b>'+d.q+'</p>';
+ h+='<div class="steps">'+d.branch.map(([k,v])=>'<div class="st"><b>'+k+'</b><br><span style="color:#556">'+v+'</span></div>').join('')+'</div>';
+ h+='<div class="hl">⚠️ 本类常见坑：'+d.warn+'</div>';
+ box.innerHTML=h;
+}
+/* 依赖：在场景区插入容器 */
+(function(){const sel=document.getElementById('scene');if(sel){const d=document.createElement('div');d.id='sceneDeep';sel.parentNode.insertBefore(d,sel.nextSibling);setTimeout(showSceneDeep,0);}})();
 function judgeThenSave(){
  const q=[$('scene').value,+$('q2').value,+$('q3').value,+$('q4').value,+$('q5').value];
- const j=judge(q);
+ const jc=judgeChain(q);
+ const j={r:jc.r,a:jc.a,risk:jc.risk,win:jc.win,state:jc.state};
  const c={id:uid(),type:$('scene').value,pa:$('pa').value||'当事人A',pb:$('pb').value||'B',desc:$('desc').value,q2:q[1],est:j,stat: j.state.includes('应急')||j.state.includes('上报')?'监测待上报':'接案',date:new Date().toISOString(),timeline:[{t:new Date().toISOString(),act:'建档·评估',who:''}],follow:[],risk:j.risk};
  D.cases.push(c); save();
- // show meta
- $('out').innerHTML='<div class="card"><b>风险:'+j.risk+'</b> 窗口:'+j.win+' r='+j.r+' a='+j.a+' 状态:'+j.state+' （案件已入工作台 id:'+c.id+'）<br><span class="small">高危/上报态请走应急流程并至工作台挂号“上报”。</span><input id="mkNote" placeholder="现场判断备注(可选)"></div>';
+ // ===== 渲染：结论 + 判据链（线1a） + 反事实推演（线1b） =====
+ let h='<div class="card"><div class="stat">';
+ h+='<div><b>'+j.risk+'</b><br>风险级别</div>';
+ h+='<div><b>'+j.win+'</b><br>剩余窗口</div>';
+ h+='<div><b>'+j.state+'</b><br>窗口状态</div>';
+ h+='<div><b>r='+j.r+' / a='+j.a+'</b><br>迫切度/不可收拾</div>';
+ h+='</div>';
+ h+='<p class="small">已建档 id='+c.id+'（入工作台）。高危/上报态请走应急流程并至工作台挂号“上报”。</p>';
+ h+='<p style="font-size:14px;color:#556">'+jc.stateHint+'</p>';
+ // 判据链
+ h+='<div class="sec">🔍 判据链（每条都有依据与可证伪点——可被反驳）</div>';
+ h+='<table><tr><th>判据</th><th>结论</th><th>依据</th><th>权重</th><th>可证伪点（什么情况下它错了）</th></tr>';
+ jc.L.forEach(x=>{h+='<tr><td><b>'+x.id+'</b><br><span class="small">'+x.name+'</span></td><td>'+(x.ok?'<span class="tag t-low">✓通过</span>':'<span class="tag t-high">✗未通过</span>')+'</td><td class="small">'+x.basis+'</td><td class="small">'+x.weight+'</td><td class="small">'+x.falsify+'</td></tr>';});
+ h+='</table>';
+ // r/a 计分追溯
+ h+='<details><summary>计分追溯（r 与 a 是怎么加的）</summary><p class="small"><b>r（迫切度）</b>：'+jc.rTrace.join(' ；')+' → '+jc.r+'<br><b>a（不可收拾度）</b>：'+jc.aTrace.join(' ；')+' → '+jc.a+'</p></details>';
+ // 反事实
+ h+='<div class="sec">🔁 反事实推演（不动 vs 动）</div>';
+ const cf=[];
+ if(jc.a<0.3){cf.push('**不动**：窗口>30天，a 增长慢，可从容多轮接触。');cf.push('**现在动**：边际收益小（没到火候），但可先建立关系/补信息。');}
+ else if(jc.a<0.5){cf.push('**不动**：14-30天内大概率升到“已吵架/掦狠话”级，处理成本上升。');cf.push('**现在动**：标准调解节奏，时间够、成本低。');}
+ else if(jc.a<0.7){cf.push('**不动**：7-14天内窗口可能关闭（a≥0.7转制度渠道，主动权丢失）。');cf.push('**现在动**：加速调解，优先补信息（L4）后一次到位。');}
+ else if(jc.a<0.9){cf.push('**不动**：3-7天内极可能升级为聚集/群体事件。');cf.push('**现在动**：紧急干预+同步做好上报准备。');}
+ else {cf.push('**不动**：<3天已进入危机临界，后果不可控。');cf.push('**现在动**：应急优先（安全+上报），不以调解为目标。');}
+ cf.forEach(x=>h+='<p style="font-size:14px">• '+x.replace(/\*\*/g,'')+'</p>');
+ // ===== 线3：动作库 / 失败预警 / 该找谁 =====
+ const ap=actionPack(jc.state, $('scene').value);
+ h+='<div class="sec">🧰 分阶段动作库（照做，不是空话）</div>';
+ ap.A.forEach(g=>{h+='<div class="steps"><div class="st"><b>'+g.t+'</b>'+g.rows.map(r=>'<div style="margin-top:3px;color:#445">· '+r+'</div>').join('')+'</div></div>';});
+ h+='<div class="sec">⚠️ 本类常见失败模式（提前避开）</div>';
+ h+='<div class="warn"><b>注意：</b>'+ap.F.map(x=>'· '+x).join('<br>')+'</div>';
+ h+='<div class="sec">🤝 该找谁（什么时候找外部）</div><table><tr><th>情形</th><th>建议对接</th></tr>';
+ ap.W.forEach(([k,v])=>h+='<tr><td>'+k+'</td><td>'+v+'</td></tr>');
+ h+='</table>';
+ h+='<div class="sec">👥 按角色看建议（同一评估，三种视角）</div>';
+ h+='<select id="roleSel" onchange="renderRole()"><option value="mediator">① 调解员视角</option><option value="official">② 基层干部视角</option><option value="party">③ 当事人视角</option></select>';
+ h+='<div id="roleOut" style="margin-top:8px"></div>';
+ h+='<div class="sec">📄 输出文书（一键生成）</div>';
+ h+='<div class="row"><button class="btn2" onclick="docReport()">评估报告</button><button class="btn2" onclick="docLedger()">工作台账</button><button class="btn2" onclick="docEscalate()">上报件</button></div>';
+ h+='<div class="sec">💬 反馈口（结果回流・用于校准判据）</div>';
+ h+='<div class="hint">用后请回填实际结果，系统会累计命中率与偏差——这是让判据越用越准的唯一途径。</div>';
+ h+='<select id="fbResult"><option>真解（不再复发）</option><option>暂缓</option><option>复发</option><option>上报未解</option></select>';
+ h+='<input id="fbNote" placeholder="补充说明（可选）：实际怎么解的 / 偏差在哪" style="margin-top:6px">';
+ h+='<div class="row"><button class="btn2" onclick="saveFeedback()">提交反馈</button><button class="btn2" onclick="fillEvidence()">看本次证据清单</button></div>';
+ h+='<div id="fbOut" style="margin-top:6px"></div>';
+ // ===== 饮酒场景：自动带出护伴清单 =====
+ if($('scene').value==='酒局/饮酒致祸'){
+  try{ h+=buildDrinkSafe(); }catch(e){ console.log('drink block err',e); }
+ }
+ h+='<input id="mkNote" placeholder="现场判断备注(可选)"></div>';
+ window.__lastJC=jc; window.__lastScene=$('scene').value;
+ $('out').innerHTML=h;
+ setTimeout(function(){renderRole();renderCases();},0);
+}
+/* ===== 线7 渲染：匹配历史案例 ===== */
+function renderCases(){
+ const box=document.getElementById('caseMatch');
+ if(box)return;
+ const jc=window.__lastJC; if(!jc)return;
+ const scene=window.__lastScene||'';
+ const desc=($('desc')&&$('desc').value)||'';
+ const q2=+(($('q2')&&$('q2').value)||1);
+ const ms=matchCases(scene,q2,desc);
+ if(!ms.length)return;
+ let h='<div class="sec">📚 相似历史案例（据库内39案例库匹配）</div>';
+ ms.forEach(cs=>{
+  h+='<div class="casebox" style="border:1px solid #e6e9f0;border-radius:8px;padding:10px;margin:8px 0">';
+  h+='<b>案例'+cs.id+'·'+cs.t+'</b> <span class="tag t0">'+cs.type+'</span>';
+  h+='<p class="small" style="margin:4px 0">当时解法：'+cs.sol+'</p>';
+  h+='<p class="small" style="margin:0;color:#888">关键词：'+cs.kw.join(' / ')+'</p></div>';
+ });
+ const holder=document.createElement('div');
+ holder.innerHTML=h;
+ const out=document.getElementById('out');
+ out.appendChild(holder);
+}
+/* ===== 线8：文书导出（评估报告 / 台账 / 上报件） ===== */
+function docReport(){
+ const jc=window.__lastJC; if(!jc)return alert('请先完成分诊');
+ const scene=($('scene')&&$('scene').value)||'';
+ const pa=($('pa')&&$('pa').value)||'当事人A';
+ const pb=($('pb')&&$('pb').value)||'当事人B';
+ const desc=($('desc')&&$('desc').value)||'—';
+ const L=['# 矛盾调解评估报告','','- 生成时间：'+new Date().toLocaleString('zh-CN'),'- 矛盾类型：'+scene,'- 当事人：'+pa+' / '+pb,'- 简要：'+desc,'',
+  '## 一、评估结论','- 风险级别：'+jc.risk,'- 剩余窗口：'+jc.win,'- 窗口状态：'+jc.state,'- 迫切度 r='+jc.r+'；不可收拾度 a='+jc.a,'',
+  '## 二、判据链'];
+ jc.L.forEach(x=>L.push('- '+x.id+' '+x.name+'：'+(x.ok?'通过':'未通过')+'｜依据：'+x.basis+'｜可证伪：'+x.falsify));
+ L.push('','## 三、建议路径', '- '+jc.stateHint, '', '## 四、动作建议');
+ const ap=actionPack(jc.state,scene);
+ ap.A.forEach(g=>{L.push('### '+g.t); g.rows.forEach(r=>L.push('- '+r));});
+ L.push('','## 五、风险提示'); ap.F.forEach(f=>L.push('- '+f));
+ L.push('','——本报告由矛盾雷达3.0生成，仅作辅助参考');
+ return downloadText(L.join('\n'),'矛盾评估报告_'+stamp()+'.md');
+}
+function docLedger(){
+ const jc=window.__lastJC; if(!jc)return alert('请先完成分诊');
+ const scene=($('scene')&&$('scene').value)||'';
+ const pa=($('pa')&&$('pa').value)||'A', pb=($('pb')&&$('pb').value)||'B';
+ const L=['| 时间 | 类型 | 当事人 | 风险 | 窗口 | 状态 | 动作 |','|:--|:--|:--|:--|:--|:--|:--|',
+  '| '+new Date().toLocaleString('zh-CN')+' | '+scene+' | '+pa+'/'+pb+' | '+jc.risk+' | '+jc.win+' | '+jc.state+' | 建档评估（待续） |'];
+ return downloadText(L.join('\n'),'调解台账_'+stamp()+'.md');
+}
+function docEscalate(){
+ const jc=window.__lastJC; if(!jc)return alert('请先完成分诊');
+ if(!(jc.state.includes('应急')||jc.state.includes('关闭'))){
+  if(!confirm('当前非高危态，确定要生成上报件吗？')) return;
+ }
+ const scene=($('scene')&&$('scene').value)||'';
+ const pa=($('pa')&&$('pa').value)||'A', pb=($('pb')&&$('pb').value)||'B';
+ const desc=($('desc')&&$('desc').value)||'—';
+ const L=['# 矛盾风险上报件','','- 上报时间：'+new Date().toLocaleString('zh-CN'),'- 上报单位：（请填写）','- 矛盾类型：'+scene,'- 涉及方：'+pa+' / '+pb,'- 情况摘要：'+desc,'',
+  '## 风险判定','- 风险级别：'+jc.risk+'（窗口 '+jc.win+'）','- 判定状态：'+jc.state,'- 依据：a='+jc.a+'（≥0.7 即转制度渠道；≥1.0 为危机）','',
+  '## 已采取动作','- 已建档评估（矛盾雷达3.0）','- （请补充：何时接、做了啥）','',
+  '## 建议','- 请上级按制度渠道介入/裁决；同步做好现场管控与群众疏导。','','——本件为系统辅助生成，请按本单位程序核实后上报'];
+ return downloadText(L.join('\n'),'矛盾上报件_'+stamp()+'.md');
+}
+function downloadText(txt,name){
+ const b=new Blob([txt],{type:'text/markdown'}); const a=document.createElement('a');
+ a.href=URL.createObjectURL(b); a.download=name; a.click();
+ setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+}
+function stamp(){const d=new Date();return ''+d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'0800'.slice(0,4);}
+/* 颜色工具 */
+/* ===== 线5：判据证据要求 + 反馈回流 ===== */
+const EVIDENCE={
+ L1:'当事人/旁人自述（“想闹/受不了了”）；有微信/录音/走访记录更好',
+ L2:'近一月是否有聚集/报警/上访记录；双方是否仍愿坐谈',
+ L3:'双方焦虑差：一方是否已采取行动（发帖/找上级/堵门）',
+ L4:'双方真实诉求清单（分别记录）；底线与可让性',
+ L5:'矛盾传递层级：直接面对面还是绕了多层/多年积案'
+};
+function fillEvidence(){
+ const jc=window.__lastJC; if(!jc)return alert('请先完成分诊');
+ let h='<table><tr><th>判据</th><th>需拿到的证据</th><th>当前状态</th></tr>';
+ jc.L.forEach(x=>{ h+='<tr><td>'+x.id+'</td><td class="small">'+(EVIDENCE[x.id]||'—')+'</td><td>'+(x.ok?'<span class="tag t-low">已有</span>':'<span class="tag t-high">待补</span>')+'</td></tr>'; });
+ h+='</table><p class="small">提示：先补“待补”的证据再进入调解，可避免 80% 的无效调解。 </p>';
+ document.getElementById('fbOut').innerHTML=h;
+}
+function saveFeedback(){
+ const jc=window.__lastJC; if(!jc)return alert('请先完成分诊');
+ const res=document.getElementById('fbResult').value;
+ const note=document.getElementById('fbNote').value||'';
+ const scene=window.__lastScene||'';
+ if(!D.entries)D.entries=[];
+ D.entries.push({id:uid(),scene,est:jc.risk,estA:jc.a,actual:res,note,date:new Date().toISOString()});
+ if(!D.samples)D.samples=[];
+ D.samples.push({scene,estR:jc.r,estA:jc.a,actual:res,note,date:new Date().toISOString()});
+ save();
+ const n=D.entries.length;
+ const hit=D.entries.filter(e=>/真解|暂缓/.test(e.actual)).length;
+ document.getElementById('fbOut').innerHTML='<div class="hl">✓ 已存反馈（累计 '+n+' 条；正向解决 '+hit+' 条 = '+(n?Math.round(hit/n*100):0)+'%）。可到「③反馈仪表」查看统计与导出样本。</div>';
+}
+
+/* ===== 线4：三角色视角输出 ===== */
+function roleView(role, jc, scene){
+ const R=[];
+ if(role==='mediator'){
+  R.push(['你的角色','调解员/调解能手']);
+  R.push(['先干什么','分开听（背靠背）；不问对错问诉求；先补 L4 信息']);
+  R.push(['何时开口','等双方情绪降温（“换成我也急”已生效）后再给方案']);
+  R.push(['收官动作','书面固化 + 约定回访；把结果回写仪表']);
+  R.push(['红线','高危（聚集/动手）立即上报，不硬调']);
+ } else if(role==='official'){
+  R.push(['你的角色','基层干部/首问责任人']);
+  R.push(['先干什么','判断要不要上报（a'+jc.a+'：'+(jc.a>=0.7?'已过闸，应上报':'尚未过闸，可先调')+'）']);
+  R.push(['担什么责','属地首责：接得住、报得出、办得实；最忌“无人管”感']);
+  R.push(['留什么痕','何时接、做了啥、何时上报、谁在场——全程留痕即免责底稿']);
+  R.push(['防什么','安全外溢（聚集/舆情）；宁可报重不可报漏']);
+ } else {
+  R.push(['你的角色','当事人/家属']);
+  R.push(['你能做的','把“你想要什么结果”说清（比争论对错有用）']);
+  R.push(['别踩的坑','别用聚堆/堵门施压（违法且会把可控变不可控）']);
+  R.push(['该找谁','找调解员/综治中心；涉及法律问题找司法所/律师']);
+  R.push(['保护好自己','保留证据（聊天/转账/合同）；不签没看懂的协议']);
+ }
+ return R;
+}
+function renderRole(){
+ const role=document.getElementById('roleSel');
+ if(!role)return;
+ const tgt=document.getElementById('roleOut');
+ if(!tgt)return;
+ const jc=window.__lastJC;
+ const scene=window.__lastScene||'';
+ if(!jc){tgt.innerHTML='<p class="small">先完成分诊，再切视角。</p>';return;}
+ const rows=roleView(role.value, jc, scene);
+ let h='<table>';
+ rows.forEach(([k,v])=>{h+='<tr><td style="width:110px"><b>'+k+'</b></td><td>'+v+'</td></tr>';});
+ h+='</table>';
+ tgt.innerHTML=h;
 }
 function riskColor(x){const m={低:'t-low',中:'t-mid',高:'t-high',极高:'t-crit'};return m[x]||'t0';}
+/* ===== 线3：分阶段动作库 + 失败模式预警 + 该找谁 ===== */
+function actionPack(state, scene){
+ const A=[];
+ // 分阶段动作
+ A.push({t:'接案前/首次接触',rows:[
+  '先分开听（背靠背），不让双方先碰面——避免当场对撞把话说死',
+  '不问“谁对谁错”，只问“你想要什么结果”',
+  '记录双方真实诉求与底线（这就是补 L4 信息）'
+ ]});
+ if(state.includes('收窄')){
+  A.push({t:'加速期（先摸底后调整）',rows:[
+   '先搞定信息差：分别摸底、比对双方说法差异',
+   '把“信息不足”变成“信息对齐”再开会',
+   '提前设计一个“双方都能接受的最小共识”当突破口'
+  ]});
+ } else if(state.includes('打开')){
+  A.push({t:'标准调解期',rows:[
+   '阶段1 先情后利：先把情绪接住（“换成我也急”）',
+   '阶段2 给台阶：不说“错”只说“可能”，当众给认可',
+   '阶段3 给结束：书面固化 + 约定回访'
+  ]});
+ } else if(state.includes('关闭')||state.includes('应急')){
+  A.push({t:'制度/应急期',rows:[
+   '停止自行硬调，第一时间上报（不报比报错更麻烦）',
+   '同步做疏导，避免“不管”被误解为“包庇”',
+   '留下工作痕迹（何时接、做了啥、何时上报）'
+  ]});
+ }
+ A.push({t:'收口期（防反复）',rows:[
+  '书面闭环：“此事到此为止，双方不再因此生争议”',
+  '约定回访时间点（1周/1月）并真的去',
+  '把本次结果回写仪表（真解/复发）——用于后续校准'
+ ]});
+ // 失败模式预警
+ let F=['过早出方案（双方情绪未处理完就给解法 → 被当偏袍）',
+  '单方施压（只压一方让步 → 表面服软、随后反弹）',
+  '口头承诺未书面化（回头不认账，无凭据）',
+  '把“程序质疑”当“要钱”处理（越谈越僵）',
+  '追求“案结”而不看“复发”（数据好看、事情没完）'];
+ if(scene==='情感家事')F.push('就案办案，忽视“家”的保全（赢了官司散了家）');
+ if(scene==='欠薪纠纷')F.push('未先查资金真相就施压（把真困难的逼上绝路）');
+ if(scene==='物业纠纷')F.push('不公开账目只调解（信任无基础）');
+ // 该找谁
+ let W=[['法律问题（责任划分/赔偿标准）','司法所/律师/行业主管部门'],
+  ['心理/情绪干预','专业心理咨/有威望的乡贤/亲属'],
+  ['专业评估（房屋/环境/财务）','第三方评估机构/检测中心'],
+  ['利益刚性大、可能群体性','上级部门/综治中心/公安（先报备）']];
+ return {A,F,W};
+}
 function listCases(){const f=$('fstat').value||'';const list=D.cases.filter(c=>!f||c.stat===f);let h='<table><tr><th>#</th><th>类型</th><th>甲乙</th><th>风险</th><th>状态</th><th>时间</th><th>打开</th></tr>';
  list.slice().reverse().forEach(c=>{h+='<tr><td>'+c.id+'</td><td>'+c.type+'</td><td>'+c.pa+' / '+c.pb+'</td><td><span class="tag '+riskColor(c.risk)+'">'+c.risk+'</span>'+(c.est.r?'<br>r'+c.est.r+'/a'+c.est.a:'')+'</td><td>'+c.stat+'</td><td class="small">'+String(c.date).slice(0,16).replace('T',' ')+'</td><td><button class="btn2" onclick="openCase('+"'"+c.id+"'"+')">打开</button></td></tr>';});
  h+='</table>'+(list.length?'':'<span class="small">暂无</span>'); $('caseList').innerHTML=h;}
@@ -170,6 +549,59 @@ function wipeAll(){if(confirm('清空全部本地数据？')){localStorage.remov
 function downloadBlob(b,name){const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000);}
 function stamp(){const d=new Date();return ''+d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');}
 renderStat();
+/* ===== 饮酒平安共同体：责任归属 + 护伴清单 ===== */
+function buildDrinkSafe(){
+ const jtEl=document.getElementById('jType');
+ const jt=jtEl?jtEl.value:'';
+ const rk=(document.getElementById('jRisk')&&document.getElementById('jRisk').value)||'';
+ const n=parseInt((document.getElementById('jN')&&document.getElementById('jN').value)||'0',10);
+ const dr=parseInt((document.getElementById('jDrive')&&document.getElementById('jDrive').value)||'0',10);
+ // 风险信号识别
+ const flags=[];
+ if(/药/.test(rk))flags.push('服药者（可能与酒精相互作用）');
+ if(/开车|驾车|开车来/.test(rk))flags.push('驾车前来者');
+ if(/连续|多场|二场|三场/.test(rk))flags.push('连续多场饮酒');
+ if(/幼|劝酒|灌|拼酒/.test(rk))flags.push('强劝酒/拼酒情境');
+ if(/情绪|失恋|烦|压力|难过/.test(rk))flags.push('情绪低落者（易过量）');
+ if(/陌生|不熟/.test(rk))flags.push('席间多有互不熟悉者');
+ if(dr>0)flags.push('明确有 '+dr+' 人驾车前来');
+ // 责任层级
+ let level,color,hint;
+ if(dr>0&&/药|连续|幼酒/.test(rk)){level='高风险';color='t-crit';hint='存在驾车+风险信号叠加：必须先把钥匙统一收找、明确代驾/护送人，否则一旦出事组织者与同桌责任最重。';}
+ else if(dr>0||/药|连续|劝酒/.test(rk)){level='中高风险';color='t-high';hint='存在可预见风险：需指定桌长并逐项落实护伴（收钥匙、限酒、护送到家）。';}
+ else if(n>0){level='常规';color='t-mid';hint='常规酒局：做好“桌长+好人志愿者+护送到家”三件套即可。';}
+ else {level='待填';color='t0';hint='请先填写饮酒人数与风险信号（可直接描述）。';}
+ let h='<div class="card"><div class="gauge"><div class="lbl">风险级别</div><div class="val"><span class="tag '+color+'">'+level+'</span></div><div class="lbl">饮酒/驾车</div><div class="val">'+(n||'—')+' / '+(dr||'0')+'</div></div>';
+ h+='<p style="font-size:14px">'+hint+'</p>';
+ if(flags.length)h+='<p class="small">识别到信号：'+flags.join(' । ')+'</p>';
+ // 责任归属
+ h+='<div class="sec">一、责任归属（已醉致祸后的归责层次）</div>';
+ h+='<div class="steps">';
+ h+='<div class="st"><b>1 饮酒者本人</b>：完全民事行为能力人对自身饮酒后果负第一责任。</div>';
+ h+='<div class="st"><b>2 组织者</b>：召集、安排、无人护伴，承担安全保障义务；未制止过量饮酒、未护送到家则责任加重。</div>';
+ h+='<div class="st"><b>3 同桌人（共饮人）</b>：明知风险而劝酒、未劝阻、未护送，在过错范围内分担责任（非连坐，按过错比例）。</div>';
+ h+='<div class="st"><b>4 场所/提供者</b>：向已醉者继续供酒、未提醒，亦有相应责任。</div>';
+ h+='</div>';
+ // 护伴清单
+ h+='<div class="sec">二、平安护伴清单（逐项落实，建议转发组织者/桌长）</div>';
+ const steps=[
+  ['设桌长', '每桌指定一名桌长：介绍互不熟悉的客人、声明医药禁忌与法纪禁令，协调同桌提醒与劝阻。'],
+  ['控酒量', '以茶代酒/低度代替；设“不劝酒”桌规；对连续多场者直接限酒。'],
+  ['知禁忌', '开场询问是否服药/慢性病/孕期/需驾车；对服药者明确“以茶代酒不伤情面”。'],
+  ['收钥匙', '每桌配一位不饮酒的“好人平安志愿者”，统一收管饮酒人车钥匙，饮一口酒即须交钥匙。'],
+  ['送到家', '饭后由志愿者/同伴监护送到家门口，交其成年家属；家属不在则继续监护至确认无风险（呕吐智僻、昏迷等立即送医）。'],
+  ['留记录', '关键环节可在群里报备（谁护送、几点到家），既尽义务也留痕免责。']
+ ];
+ h+='<div class="steps">'+steps.map(([t,d])=>'<div class="st"><b>'+t+'</b>：'+d+'</div>').join('')+'</div>';
+ // 话术
+ h+='<div class="sec">三、现场话术（不伤情面版）</div>';
+ h+='<div class="steps"><div class="st">“兄弟今天高兴，但医生嘱附我在吃药，我以茶代酒敬你，心意一样满。”</div>';
+ h+='<div class="st">“您开着车来的，这杯先存着，回头我给您送家门口。”</div>';
+ h+='<div class="st">（对桌长）“今天这桌我做主，大家不给彼此添麻烦 —— 钥匙先放我这，回头我把您送到门。”</div></div>';
+ h+='<div class="hl">底线：饮酒自愿、劝酒有责、护送有义。从源头上、系统上预防，让“酒后出事不能犯、不想犯、不敢犯”。</div>';
+ h+='</div>';
+ return h;
+}
 </script>
 </body>
 </html>
