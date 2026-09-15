@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>矛盾雷达 3.0 · 调解案件闭合工具</title>
+<title>矛盾雷达 v3.2 · 调解案件闭合工具</title>
 <style>
 :root{--绿:#2ecc71;--黄:#f1c40f;--橙:#e67e22;--红:#e74c3c;--深:#16213e;--金:#c9a86a;--bg:#f5f6fa;--card:#fff;--line:#e3e6ee;--sub:#667}
 *{margin:0;box-sizing:border-box}
@@ -58,7 +58,7 @@ details summary{cursor:pointer;color:var(--深);font-weight:bold}
   <div class="card">
     <label>1. 矛盾场景</label>
     <select id="scene" onchange="showSceneDeep()">
-      <option value="邻里纠纷">邻里纠纷</option><option>征地拆迁</option><option>欠薪纠纷</option><option>物业纠纷</option><option>信访积案</option><option>情感家事</option><option>民生服务</option><option value="酒局/饮酒致祸">酒局/饮酒致祸</option>
+      <option value="邻里纠纷">邻里纠纷</option><option>征地拆迁</option><option>欠薪纠纷</option><option>物业纠纷</option><option>信访积案</option><option>情感家事</option><option>民生服务</option><option value="酒局/饮酒致祸">酒局/饮酒致祸</option><option value="医患纠纷">医患纠纷</option><option value="消费/服务纠纷">消费/服务纠纷</option><option value="校园纠纷">校园纠纷</option><option value="复合场景（多类叠加）">复合场景（多类叠加）</option>
     </select>
     <div id="drinkExtra" style="display:none;border-top:1px dashed #dde;margin-top:10px;padding-top:8px">
       <div class="hint"><b>饮酒专项</b>（选“酒局/饮酒致祸”时自动展示）</div>
@@ -104,6 +104,12 @@ details summary{cursor:pointer;color:var(--深);font-weight:bold}
     <h3 style="margin:14px 0 6px">待标定 / 已标定样本（A）</h3>
     <div id="sampleList"></div>
   </div>
+
+  <div class="card">
+    <h3 style="margin:0 0 8px">📮 判据纠错记录（B · 2026-09-15 新增）</h3>
+    <p class="small">在分诊结果的「判据链」表里，每条判据右侧都有「纠错」按钮。纠错用于<b>判据权重回标</b>——这是本工具最重要的自我修正通道。</p>
+    <div id="critList"></div>
+  </div>
 </div>
 
 <!-- Tab4 -->
@@ -111,13 +117,38 @@ details summary{cursor:pointer;color:var(--深);font-weight:bold}
   <div class="card">
     <h3>说明</h3>
     <p class="small">本版为 2.0 升级：①分诊同 2.0；②案件工作台；③反馈仪表与样本（C/A）；④导出/导入协同与本地持久（D）。判据权重仍为工程近似，实证回标待样本≥N 后进行（这是自反刀1的预期遗留）。</p>
+    <div style="border-top:2px solid #c9a86a;margin-top:14px;padding-top:12px">
+      <h3 style="margin:0 0 8px">📌 版本与权属</h3>
+      <table style="font-size:13px">
+        <tr><th style="width:110px">名称</th><td id="vi_name"></td></tr>
+        <tr><th>版本</th><td><b id="vi_ver"></b> <span class="small" id="vi_date"></span></td></tr>
+        <tr><th>本次更新</th><td id="vi_build"></td></tr>
+        <tr><th>作者</th><td id="vi_author"></td></tr>
+        <tr><th>著作权</th><td id="vi_copy"></td></tr>
+        <tr><th>使用许可</th><td id="vi_license"></td></tr>
+        <tr><th>联系方式</th><td id="vi_contact"></td></tr>
+      </table>
+      <p class="small" style="margin-top:8px;color:#556"><b>免责声明</b>：本工具为<b>调解辅助</b>，输出仅为参考意见，不构成法律意见或处理决定。正式处置请依现行法律法规及本单位程序，并核实后使用。因使用本工具产生的后果，作者不承担法律责任。</p>
+      <p class="small" style="color:#556"><b>数据说明</b>：全部数据仅存于本机浏览器（localStorage），不上传、不联网、不采集。清除浏览器数据将同时清除记录，请定期用「导出JSON」备份。</p>
+      <p class="small" style="color:#556"><b>第三方内容</b>：内置案例为公开报道整理，仅作教学参考；如涉权利问题请联系作者删除。</p>
+    </div>
     <details><summary>数据模型键</summary><p class="small">appData{settings, cases[], entries[], samples[]}；cases: id/type/pa/pb/sexp/date/q..{risk,window,state}/stat/timeline[]{t,act,who}/follow[] /report。 entries: caseId/est/actual/recid/note。 samples: caseId/estR/estA/corrR/corrA/reason。</p></details>
   </div>
 </div>
-<footer>矛盾雷达 3.0 · 仅供调解辅助，高危必上报 · no-server local</footer>
+<footer id="appFooter">矛盾雷达 <span id="fvNum"></span> · 仅供调解辅助，高危必上报 · no-server local · <a href="javascript:void(0)" onclick="tab('tab4')" style="color:inherit;text-decoration:underline">版本与权属</a></footer>
 </div>
 
 <script>
+const APP_INFO={
+  name:'矛盾雷达',
+  version:'3.2.0',
+  versionDate:'2026-09-15',
+  buildNotes:'v3.2 · 场景12+案例54+判据纠错',
+  author:'老曾（小玄子）',
+  copyright:'© 2026 老曾. 保留所有权利。',
+  license:'自用/内部使用；对外发布或商用请联系作者授权。',
+  contact:'微信公众号「判策」/「念碎碎」'
+};
 /* 判据引擎 (2.0 精简) */
 function estimate(q){let r=.15; q2=+q[1]; if(q2>=2)r+=.3; if(q2>=3)r+=.25; if(q2>=4)r+=.25; if(q2==5)r+=.15; r+= (+q[2])*.1; r=Math.min(r,1);
  let a=q2*.12+(+q[4])*.08; if(q2>=4)a+=.3; a=Math.min(a,1); return {r:+r.toFixed(2),a:+a.toFixed(2)};}
@@ -176,14 +207,23 @@ function judge(q){ // 保留兼容接口
 const KEY='maodun3';
 let D={settings:{},cases:[],entries:[],samples:[]};
 function save(){localStorage.setItem(KEY,JSON.stringify(D));}
-function load(){try{const x=localStorage.getItem(KEY);if(x){const o=JSON.parse(x);D={...(o||{}),cases:o.cases||[],entries:o.entries||[],samples:o.samples||[]};}}catch(e){} }
+function load(){try{const x=localStorage.getItem(KEY);if(x){const o=JSON.parse(x);D={...(o||{}),cases:o.cases||[],entries:o.entries||[],samples:o.samples||[],critErrs:o.critErrs||[]};}}catch(e){} }
 load();
 const $=id=>document.getElementById(id);
 function tab(t){
  ['tab1','tab2','tab3','tab4','tab5'].forEach(n=>{const el=document.getElementById(n);if(el)el.style.display=(n===t?'block':'none');});
  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===(t||'tab1')));
+ if(t==='tab3'){try{renderCritErrs();}catch(e){}} /* tab3切到时刷新纠错 */
 }
 tab('tab1');
+/* 版本与权属：渲染到页脚与说明页 */
+(function(){
+  try{
+    var vEl=document.getElementById('fvNum'); if(vEl) vEl.textContent='v'+APP_INFO.version;
+    var map={vi_name:'name',vi_ver:'version',vi_date:'versionDate',vi_build:'buildNotes',vi_author:'author',vi_copy:'copyright',vi_license:'license',vi_contact:'contact'};
+    Object.keys(map).forEach(function(id){var el=document.getElementById(id); if(el) el.textContent=APP_INFO[map[id]];});
+  }catch(e){}
+})();
 
 function uid(){return Math.random().toString(36).slice(2,8)+(Date.now()%1000);}
 
@@ -217,7 +257,40 @@ const CASE_LIB=[
  {id:17, t:'婚恋纠纷的隐蔽化与反复化', type:'MX-A', n:'2+', kw:['婚恋','情感','反复','隐蔽'],sol:'情感利益不可量化→不建模：走经验层，先彻查反复根源'},
  {id:28, t:'遗产纠纷调解——"案子结了，家可能就散了"', type:'MX-A', n:'2+', kw:['遗产','家事','兄弟','散了'],sol:'案结≠家不散：先顾感情再分财产，防赢了官司散了家'},
  {id:20, t:'48户村民土地纠纷——"法不责众"与多元解纷', type:'CB-U', n:'3-5', kw:['48户','土地','群体','法不责众'],sol:'群体+共益：代表协商制+多元解纷，避免法不责众'},
- {id:30, t:'定西法院两案例入选最高法多元解纷案例库', type:'CR-E', n:'2', kw:['法院','入库','解纷'],sol:'法院+多元解纷：规范流程，形成可复制模板'}
+ {id:30, t:'定西法院两案例入选最高法多元解纷案例库', type:'CR-E', n:'2', kw:['法院','入库','解纷'],sol:'法院+多元解纷：规范流程，形成可复制模板'},
+ /* ===== 2026-09-15 扩充：新增场景（医患/消费/校园）+ 失败案例组 ===== */
+ // —— 医患类 ——
+ {id:101,t:'某三甲医院术后并发症纠纷——"要说法"型', type:'ZR-E', n:'2', kw:['医患','术后','并发症','说法','医院'],sol:'家属要的是"为什么"，不是钱：先由主刀医生当面复盘手术过程+给出书面说明，情绪落地后再谈补偿方案'},
+ {id:102,t:'患者欠费出院被拦——费用争议', type:'CR-E', n:'2', kw:['医患','欠费','费用','出院'],sol:'当面核对费用清单，逐项解释；能减免的当场定，避免患者反复跑（跑一次火加一分）'},
+ {id:103,t:'医闹聚集——家属十余人堵门', type:'ZR-U', n:'3-5', kw:['医患','医闹','聚集','堵门','群体'],sol:'应急优先：先分流人群、保诊疗秩序，同步启动医疗纠纷调解委员会+公安联动，切勿当场谈钱'},
+ // —— 消费/服务类 ——
+ {id:104,t:'健身房预付费跑路——三百会员维权', type:'CB-U', n:'3-5', kw:['消费','预付费','跑路','健身','群体'],sol:'保全优先：查主体资产+联合受害人登记债权+同步报案；个体调解已不够，走集体维权通道'},
+ {id:105,t:'电商假货单笔索赔——拖延致舆情', type:'CR-E', n:'2', kw:['消费','假货','电商','索赔','拖延'],sol:'快处快赔：24小时内答复、限期退款；单笔拖延7天即升级为群体投诉'},
+ {id:106,t:'装修公司半途停工——业主集体维权', type:'CB-U', n:'3-5', kw:['消费','装修','停工','业主','集体'],sol:'共益型：业主成立临时代表组统一谈判，避免各自为战被逐个击破'},
+ {id:107,t:'教培退费纠纷——"双减"后遗症', type:'CB-E', n:'2+', kw:['消费','教培','退费','政策'],sol:'政策变动型：区分"经营困难"与"恶意圈钱"，前者分期退费+政府协调，后者走刑事'},
+ // —— 校园类 ——
+ {id:108,t:'校园欺凌引发的家长对峙', type:'ZR-E', n:'3', kw:['校园','欺凌','家长','对峙','学生'],sol:'先分开谈：双方家长各自单独沟通情绪，避免当众对峙；涉欺凌须学校+教育部门+必要时公安联动'},
+ {id:109,t:'学生课间打闹受伤——责任划分争议', type:'ZR-E', n:'2', kw:['校园','受伤','责任','课间'],sol:'事实优先：调监控+找证人+书面记录，双方家长各自在场；避免"各说各话"变成家长互撕'},
+ {id:110,t:'班主任体罚投诉——家校冲突', type:'MX-A', n:'2+', kw:['校园','体罚','投诉','家校'],sol:'面子型冲突：先给家长台阶（承认其关切合理），再依规处理教师；只处理教师不安抚家长会激化'},
+ // —— 复合场景 ——
+ {id:111,t:'欠薪引发聚集——主次矛盾叠加', type:'CB-U', n:'3-5', kw:['复合','欠薪','聚集','主次'],sol:'先解主矛盾（欠薪源头），次生（聚集）自消；若先压聚集，欠薪未决必复发'},
+ {id:112,t:'物业费+邻里噪音——两条线混谈', type:'CB-E', n:'3+', kw:['复合','物业','邻里','混谈'],sol:'分线并行：两条线各定专人定时限，勿混谈（混谈必失焦）'},
+ // ===== 失败案例组（反面样本，价值高于成功案例）=====
+ {id:501,t:'【失败】把"要说法"当"要钱"——医患纠纷升级', type:'FAIL', n:'2', kw:['失败','医患','误判','升级'],sol:'❌ 失败教训：家属要的是解释，医院直接谈赔偿→被解读为"心虚"，谈判破裂并上网发酵。正确做法：先复盘说明、后谈补偿'},
+ {id:502,t:'【失败】当众训家长——校园纠纷激化', type:'FAIL', n:'3', kw:['失败','校园','当众','激化'],sol:'❌ 失败教训：学校当着双方孩子和家长批评，家长觉得丢面子→从孩子纠纷升级为家长对抗。正确做法：分开谈、先给台阶'},
+ {id:503,t:'【失败】单笔消费投诉拖7天——变群体事件', type:'FAIL', n:'2', kw:['失败','消费','拖延','群体'],sol:'❌ 失败教训：客服拖延7天未答复，同一批用户在网上聚合，单笔投诉变群体舆情。正确做法：24小时答复+限期处理'},
+ {id:504,t:'【失败】只查人不改制度——同类问题复发', type:'FAIL', n:'2', kw:['失败','复发','制度','只查人'],sol:'❌ 失败教训：个案处理了责任人，但流程漏洞未补，同一岗位换人后重犯（交通厅长"事故多发期"式）。正确做法：个案+制度同步改'},
+ {id:505,t:'【失败】先压聚集后解源头——欠薪复发', type:'FAIL', n:'3-5', kw:['失败','欠薪','聚集','复发'],sol:'❌ 失败教训：先把聚集驱散、欠薪未解决→三个月后同批人再次聚集且规模更大。正确做法：源头优先'},
+ {id:506,t:'【失败】用钱压事——家事纠纷结案家散', type:'FAIL', n:'2+', kw:['失败','家事','钱','家散'],sol:'❌ 失败教训：依法分割财产办得很"对"，但兄弟从此不来往。正确做法：案结≠家不散，需维护关系'},
+ {id:507,t:'【失败】信息未摸清就开会——调解破裂', type:'FAIL', n:'2', kw:['失败','摸底','开会','破裂'],sol:'❌ 失败教训：双方真实诉求未摸清就组织三方会谈，会上各说各话、当众翻脸再无回旋。正确做法：先背靠背摸底'},
+ {id:508,t:'【失败】忽视情绪只看条款——协议签了不履行', type:'FAIL', n:'2', kw:['失败','情绪','协议','不履行'],sol:'❌ 失败教训：条款公平但一方当众丢了面子，签完即反悔。正确做法：先给台阶再固化条款'}
+,
+ // ===== 新增场景类案例（医患/消费/校园 各补足 3 条以上）=====
+ {id:113,t:'医患纠纷人民调解委员会"第三方"模式', type:'CR-E', n:'2', kw:['医患','第三方','调委会','中立'],sol:'中立第三方介入：医院与患者都不直接对话，由医调委居间——解决"不信任"这一根本障碍'},
+ {id:114,t:'消协"+法院"诉调对接——群体消费纠纷', type:'CR-E', n:'3-5', kw:['消费','消协','法院','诉调对接','群体'],sol:'诉调对接：消协调解+法院司法确认，让调解书有强制力，解决"签了不履行"'},
+ {id:115,t:'"法治副校长"进校园——欺凌预防', type:'ZR-E', n:'2', kw:['校园','法治副校长','欺凌','预防'],sol:'前置预防：法治副校长定期宣讲+建立校内申诉通道，把矛盾解在发生之前'},
+ {id:116,t:'银发消费陷阱——保健品诈骗老人维权', type:'CB-U', n:'3-5', kw:['消费','保健品','诈骗','老人','群体'],sol:'涉老群体+诈骗：先做证据固定与报案，同时联系家属；老人易被二次话术，需家属在场'},
+ {id:117,t:'校园周边食品安全投诉链', type:'CB-E', n:'2+', kw:['校园','食品','安全','投诉'],sol:'系统性风险：个体投诉背后是监管漏洞，须转市场监管+学校联合排查，不能只处理单店'}
 ];
 /* 场景→类型倾向映射（用于匹配加权） */
 const SCENE_TYPE_HINT={
@@ -253,7 +326,11 @@ const SCENE_DEEP={
  '情感家事':{q:'是“分家产/赡养义务”还是“关系保全”？',branch:[['财产/义务（可分割）','→ 先算清、再谈情，避免赢了官司散了家'],['关系保全（面子/亲情）','→ 案结≠家不散：留台阶、维护长辈尊严、回访']],warn:'家事最大风险：依法办对了，但家没了'},
  '民生服务':{q:'问题是“个体错”还是“制度链太长”？',branch:[['个体错（单笔赔付/服务失误）','→ 就事论事、快赔快改'],['制度链太长（多部门推诿）','→ 首问负责+一口对外+限时终结（别让群众跑第二趟）']],warn:'民生类最伤信任的是“跑断腿”，先解决流程再看个案'},
  '酒局/饮酒致祸':{q:'事发前有没有“可预见风险”？',branch:[['有（服药/驾车/强劝酒/连续场）','→ 责任加重：组织者与同桌均可能担责，必须完整体现护伴链'],['无（自愿且已尽提醒护送）','→ 责任主要在饮酒者本人，护伴痕迹是免责证据']],warn:'饮酒类案件定责关键：事前可预见性与护伴痕迹，两者都有证据才有话语权'}
-};
+,
+ '医患纠纷':{q:'争议是“医疗过错”还是“沟通缺位”？',branch:[['医疗过错（技术判断）','→ 走事实路径：封存病历、申请鉴定、依法定责，情绪安抚同步做'],['沟通缺位（没人解释清楚）','→ 走解释路径：先讲清“为什么这么做”，再谈补偿；此路径给钱也压不住火'],['费用纠纷（欠费/收费争议）','→ 走账目路径：当面核对清单，能减免的当场定，别让家属反复跑']],warn:'医患类最大失败：把“要个说法”当成“要钱”，钱给了火更大——先分清要的是说法还是赔偿'},
+ '消费/服务纠纷':{q:'是“单笔索赔”还是“系统性欺诈”？',branch:[['单笔索赔（个案）','→ 快处快赔：限期答复、一键退款/换货，别拖成舆情'],['系统性欺诈（多人同款）','→ 转监管：固定证据、联合举报、走市场监管/消协，个体调解已不够'],['预付费跑路（美容/健身/教培）','→ 保全优先：先查主体资产、联合其他受害人登记债权，同步报案']],warn:'消费类最伤信任的是“拖”——单笔拖 7 天就变群体投诉，先给时限'},
+ '校园纠纷':{q:'是“事实之争”还是“面子之争”？',branch:[['事实之争（谁先动手/责任归属）','→ 走调查路径：监控+证人+书面记录，双方家长各自在场，避免“各说各话”'],['面子之争（孩子受委屈/家长被冒犯）','→ 走台阶路径：先安抚家长情绪、给对方面子，再谈处理；公事公办会激化'],['涉欺凌（持续性）','→ 升级处理：学校+家长+必要时公安/教育部门联动，不能内部消化']],warn:'校园类两大忌：①当着双方孩子训家长 ②只处理孩子不处理家长情绪——家长才是决策人'},
+ '复合场景（多类叠加）':{q:'哪一类是“主矛盾”，哪类是“次生”？',branch:[['有主次（如欠薪为主、聚集为次）','→ 先解主矛盾（源头），次生自消；反之先压次生，主矛盾会复发'],['并列（两类独立叠加，如物业+邻里）','→ 分线并行：两条线各自定专人定时限，勿混谈（混谈必失焦）'],['连锁（A导致B导致C）','→ 找链头：治 B 无用，必须回到 A；用时间线还原因果链']],warn:'复合场景最大失败：把所有诉求放一张桌子上谈——必须拆线，一次只谈一条线'}};
 function showSceneDeep(){
  const s=$('scene').value;
  // 酒局场景：展示饮酒专项
@@ -287,9 +364,10 @@ function judgeThenSave(){
  h+='<p style="font-size:14px;color:#556">'+jc.stateHint+'</p>';
  // 判据链
  h+='<div class="sec">🔍 判据链（每条都有依据与可证伪点——可被反驳）</div>';
- h+='<table><tr><th>判据</th><th>结论</th><th>依据</th><th>权重</th><th>可证伪点（什么情况下它错了）</th></tr>';
- jc.L.forEach(x=>{h+='<tr><td><b>'+x.id+'</b><br><span class="small">'+x.name+'</span></td><td>'+(x.ok?'<span class="tag t-low">✓通过</span>':'<span class="tag t-high">✗未通过</span>')+'</td><td class="small">'+x.basis+'</td><td class="small">'+x.weight+'</td><td class="small">'+x.falsify+'</td></tr>';});
+ h+='<table><tr><th>判据</th><th>结论</th><th>依据</th><th>权重</th><th>可证伪点（什么情况下它错了）</th><th>纠错</th></tr>';
+ jc.L.forEach(x=>{h+='<tr><td><b>'+x.id+'</b><br><span class="small">'+x.name+'</span></td><td>'+(x.ok?'<span class="tag t-low">✓通过</span>':'<span class="tag t-high">✗未通过</span>')+'</td><td class="small">'+x.basis+'</td><td class="small">'+x.weight+'</td><td class="small">'+x.falsify+'</td><td><button class="btn2" onclick="openCrit('+"'"+x.id+"'"+','+JSON.stringify(x.name)+')">纠错</button></td></tr>';});
  h+='</table>';
+ h+='<div id="critPanel"></div>';
  // r/a 计分追溯
  h+='<details><summary>计分追溯（r 与 a 是怎么加的）</summary><p class="small"><b>r（迫切度）</b>：'+jc.rTrace.join(' ；')+' → '+jc.r+'<br><b>a（不可收拾度）</b>：'+jc.aTrace.join(' ；')+' → '+jc.a+'</p></details>';
  // 反事实
@@ -429,6 +507,87 @@ function saveFeedback(){
  document.getElementById('fbOut').innerHTML='<div class="hl">✓ 已存反馈（累计 '+n+' 条；正向解决 '+hit+' 条 = '+(n?Math.round(hit/n*100):0)+'%）。可到「③反馈仪表」查看统计与导出样本。</div>';
 }
 
+
+/* ===== 线：判据纠错反馈（2026-09-15 新增） =====
+   目的：让使用者能对"某条判据判错了"直接反馈 → 服务权重重标（说明书自陈的最大缺口）
+   数据：D.critErrs[] = {id, caseRef, critId, critName, scene, verdict, reason, evidence, date}
+*/
+function openCrit(critId, critName){
+ const box=document.getElementById('critPanel');
+ const jc=window.__lastJC, scene=window.__lastScene||'';
+ if(!jc){alert('请先完成分诊');return;}
+ const cur=(jc.L.find(x=>x.id===critId)||{}).ok;
+ box.innerHTML='<div class="card" style="border:2px solid #c60">'
+  +'<div class="sec">📮 判据纠错 · '+critId+' '+critName+'（当前系统判：'+(cur?'✓通过':'✗未通过')+'）</div>'
+  +'<label>我认为这条判据判：</label>'
+  +'<select id="cr_verdict">'
+  +'<option value="wrong">判错了（系统结论与实际不符）</option>'
+  +'<option value="right">判对了（仅补充说明）</option>'
+  +'<option value="unsure">这条判据本身有问题（不好用/说不清）</option>'
+  +'</select>'
+  +'<label>为什么？（必填，一句话说清）</label>'
+  +'<input id="cr_reason" placeholder="例：双方其实都很清楚诉求，只是没当面说，判"信息不足"是错的">'
+  +'<label>有什么证据支持你的判断？（选填）</label>'
+  +'<input id="cr_evidence" placeholder="例：我先单独问过双方，各自诉求都写下来了">'
+  +'<div style="margin-top:10px">'
+  +'<button class="btn" onclick="submitCrit('+JSON.stringify(critId)+','+JSON.stringify(critName)+')">提交纠错</button> '
+  +'<button class="btn2" onclick="document.getElementById(\'critPanel\').innerHTML=\'\'">取消</button>'
+  +'</div>'
+  +'<p class="small" style="color:#556">纠错会存到本机，可在「③反馈仪表」查看与导出，用于后续判据权重回标。</p>'
+  +'</div>';
+}
+function submitCrit(critId, critName){
+ const verdict=document.getElementById('cr_verdict').value;
+ const reason=(document.getElementById('cr_reason').value||'').trim();
+ const evidence=(document.getElementById('cr_evidence').value||'').trim();
+ if(!reason){alert('请填写纠错理由（必填）');return;}
+ if(!D.critErrs)D.critErrs=[];
+ const jc=window.__lastJC||{};
+ D.critErrs.push({
+   id:uid(),
+   scene:window.__lastScene||'',
+   critId, critName,
+   sysVerdict:(jc.L&&jc.L.find(x=>x.id===critId)||{}).ok?'通过':'未通过',
+   verdict:({wrong:'判错',right:'判对',unsure:'判据本身有问题'})[verdict]||verdict,
+   reason, evidence,
+   estR:jc.r, estA:jc.a,
+   date:new Date().toISOString()
+ });
+ save();
+ const n=D.critErrs.length;
+ document.getElementById('critPanel').innerHTML='<div class="hl">✓ 已记录纠错（累计 '+n+' 条）。到「③ 反馈仪表」可查看列表与导出。</div>';
+}
+
+/* 判据纠错列表（供仪表页调用） */
+function renderCritErrs(){
+ const host=document.getElementById('critList');
+ if(!host)return;
+ const es=(D.critErrs||[]);
+ if(!es.length){host.innerHTML='<span class="small">暂无判据纠错记录</span>';return;}
+ let h='<table><tr><th>日期</th><th>场景</th><th>判据</th><th>系统判</th><th>人工判</th><th>理由</th></tr>';
+ es.slice().reverse().forEach(x=>{
+   h+='<tr><td class="small">'+(x.date||'').slice(0,10)+'</td><td class="small">'+(x.scene||'')+'</td>'
+     +'<td class="small"><b>'+x.critId+'</b> '+(x.critName||'')+'</td>'
+     +'<td class="small">'+x.sysVerdict+'</td>'
+     +'<td class="small"><b>'+x.verdict+'</b></td>'
+     +'<td class="small">'+(x.reason||'')+(x.evidence?' <i>['+x.evidence+']</i>':'')+'</td></tr>';
+ });
+ h+='</table>';
+ // 统计：哪条判据被纠错最多
+ const cnt={};
+ es.forEach(x=>{cnt[x.critId]=(cnt[x.critId]||0)+1;});
+ const top=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,5);
+ h+='<p class="small"><b>被纠错最多的判据：</b>'+top.map(([k,v])=>k+'×'+v).join('、')
+   +'　<button class="btn2" onclick="exportCritErrs()">导出纠错样本(JSON)</button></p>';
+ host.innerHTML=h;
+}
+function exportCritErrs(){
+ const es=(D.critErrs||[]);
+ if(!es.length){alert('暂无纠错样本');return;}
+ downloadBlob(JSON.stringify({exported:new Date().toISOString(),count:es.length,critErrs:es},null,1),
+   'crit_errs_'+stamp()+'.json','application/json');
+}
+
 /* ===== 线4：三角色视角输出 ===== */
 function roleView(role, jc, scene){
  const R=[];
@@ -535,7 +694,7 @@ function setStat(id){const s=document.getElementById('st_'+id).value;const c=D.c
 function addFollow(id){const t=document.getElementById('fv_'+id).value.trim();const c=D.cases.find(x=>x.id===id);if(!t){c.follow=c.follow||[]}c.follow.push(t||'回访(无文字)');save();renderActs(id);}
 function enterResult(id){$('rx_'+id).innerHTML='<div class="card"><label>结果(re-离散)</label><select id="res_'+id+'"><option value="真解">真解(复发不再)</option><option value="暂缓">暂缓</option><option value="复发">复发</option><option value="上报未解">上报/未解</option></select><label>是否命中系统分级</label><select id="hit_'+id+'"><option value="1">命中</option><option value="0">未命中</option></select><label>备注/实际时长(天)</label><input id="du_'+id+'" type="number" ><button class="btn" onclick="saveResult('+"'"+id+"'"+')">保存结果</button></div>';}
 function saveResult(id){const c=D.cases.find(x=>x.id===id);const res=document.getElementById('res_'+id).value;const hit=document.getElementById('hit_'+id).value;const du=document.getElementById('du_'+id).value;const noteInp=document.querySelector('#mkNote');D.entries.push({id:uid(),caseId:id,type:c.type,est:c.risk,estA:c.est&&c.est.a||'',actual:res,hit:+hit,dur:du||'',date:new Date().toISOString()});c.stat='结案';save();renderStat();document.getElementById('rx_'+id).innerHTML='<span class="small">已录入仪表 +'+(du||'')+'天 ·'+res+'</span>';listCases();tab('tab3');}
-function renderStat(){const e=D.entries;if(!e.length){$('statBox').innerHTML='<span>暂无结果样本</span>';$('sampleList').innerHTML='';return;}
+function renderStat(){renderCritErrs();const e=D.entries;if(!e.length){$('statBox').innerHTML='<span>暂无结果样本</span>';$('sampleList').innerHTML='';return;}
  const hit=e.filter(x=>x.hit).length;const rate=Math.round(hit/e.length*100);const rec=e.filter(x=>x.actual==='复发').length;const up=e.filter(x=>x.actual==='上报未解').length;
  $('statBox').innerHTML='<div><b>'+e.length+'</b><br>结果样本</div><div><b>'+rate+'%</b><br>命中率(自评)</div><div><b>'+rec+'</b><br>复发</div><div><b>'+up+'</b><br>上报未解</div>';
  let s=''; e.forEach(x=>{s+='<div class="sample">案件<'+x.type+'> 估级:'+x.est+' · 实际:'+x.actual+' 命中:'+(x.hit?'✓':'✗')+(x.dur?' · '+x.dur+'天':'')+'<br><button class="btn2" onclick="markCorrection('+"'"+x.id+"'"+')">修正 r/a(入待标定样本)</button><span id="crc_'+x.id+'"></span></div>';}); $('sampleList').innerHTML=s;}
