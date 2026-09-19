@@ -399,6 +399,15 @@ function judgeThenSave(){
  h+='<input id="fbNote" placeholder="补充说明（可选）：实际怎么解的 / 偏差在哪" style="margin-top:6px">';
  h+='<div class="row"><button class="btn2" onclick="saveFeedback()">提交反馈</button><button class="btn2" onclick="fillEvidence()">看本次证据清单</button></div>';
  h+='<div id="fbOut" style="margin-top:6px"></div>';
+ // ===== 一键反馈条（反馈码·本地生成·用户自愿发送） =====
+ h+='<div class="sec" style="margin-top:14px">📣 一键反馈（这个判断准吗？）</div>';
+ h+='<div class="hint">点一下就行——不用打字。点完会给你一段"反馈码"，复制发我即可（不发也没关系，数据只在你手机里）。</div>';
+ h+='<div id="fbShareBar" class="row">'+
+     '<button class="btn2" onclick="makeFbCode(1)">👍 准</button>'+
+     '<button class="btn2" onclick="makeFbCode(2)">👎 不准</button>'+
+     '<button class="btn2" onclick="makeFbCode(3)">✏️ 我要纠错</button>'+
+   '</div>';
+ h+='<div id="fbCodeOut" style="margin-top:8px"></div>';
  // ===== 饮酒场景：自动带出护伴清单 =====
  if($('scene').value==='酒局/饮酒致祸'){
   try{ h+=buildDrinkSafe(); }catch(e){ console.log('drink block err',e); }
@@ -474,6 +483,58 @@ function downloadText(txt,name){
  const b=new Blob([txt],{type:'text/markdown'}); const a=document.createElement('a');
  a.href=URL.createObjectURL(b); a.download=name; a.click();
  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+}
+/* ===== 反馈码生成（本地·不上传） ===== */
+function makeFbCode(type){
+  try{
+    const jc = window.__lastJC || {};
+    const scene = window.__lastScene || '';
+    const desc = (document.getElementById('desc') && document.getElementById('desc').value || '').slice(0,60);
+    const d = new Date();
+    const ds = ''+d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
+    const tmap = {1:'准',2:'不准',3:'纠错'};
+    const risk = jc.risk || '—';
+    let code = 'MR-FB-'+ds+'-'+type+'-';
+    if(type===1){
+      code += '（判断准确）';
+    } else {
+      // 允许用户补充（可选）
+      let extra = prompt('说说哪里不对？（可留空直接确定）', '');
+      extra = (extra===null) ? '（未补充）' : (extra.trim() || '（未补充）');
+      code += extra.replace(/[\r\n]+/g,' ');
+    }
+    const full = '=== 矛盾雷达反馈 ===\n' + code
+      + '\n【场景】' + (scene||'—')
+      + '\n【风险级别】' + risk
+      + '\n【输入概要】' + (desc||'—')
+      + '\n【时间】' + d.toLocaleString('zh-CN')
+      + '\n=== 结束 ===';
+    // 本地留痕（不上传）
+    try{
+      const arr = JSON.parse(localStorage.getItem('fbCodes')||'[]');
+      arr.push({t:type, at:d.toISOString(), code:code});
+      localStorage.setItem('fbCodes', JSON.stringify(arr));
+    }catch(e){}
+    const out = document.getElementById('fbCodeOut');
+    if(out){
+      out.innerHTML = '<div class="card"><div class="small">把下面这段复制发我即可（公众号留言/私信都行）：</div>'
+        + '<textarea id="fbCodeText" style="width:100%;height:110px;margin-top:6px;font-size:12px">'+full+'</textarea>'
+        + '<div class="row" style="margin-top:6px"><button class="btn2" onclick="copyFbCode()">📋 复制</button>'
+        + '<button class="btn2" onclick="document.getElementById(\'fbCodeOut\').innerHTML=\'\'">关闭</button></div>'
+        + '<div class="small" style="margin-top:6px">你指出一处错，我就改一处。这条反馈已存在你本机，不会自动上传。</div></div>';
+    }
+  }catch(e){ console.error('fbCode err', e); alert('生成反馈码失败：'+e.message); }
+}
+function copyFbCode(){
+  const ta = document.getElementById('fbCodeText');
+  if(!ta) return;
+  ta.select();
+  try{
+    document.execCommand('copy');
+    alert('已复制！发送给作者即可 🙏');
+  }catch(e){
+    alert('请手动长按选中复制');
+  }
 }
 function stamp(){const d=new Date();return ''+d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'0800'.slice(0,4);}
 /* 颜色工具 */
