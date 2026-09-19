@@ -229,21 +229,21 @@ function uid(){return Math.random().toString(36).slice(2,8)+(Date.now()%1000);}
 
 /* ===== 线7：39案例库（据库内-矛调39案例_重标注与均衡填充 结构化） ===== */
 const CASE_LIB=[
- {id:4,  t:'红河蒙自56户建房纠纷',        type:'ZR-U', n:'3-5', kw:['建房','群体','56','土地','拆迁'],sol:'群体利益冲突：政府主导协调，分户差异化处理，防抱团激化'},
+ {id:4,  t:'某地56户建房纠纷',        type:'ZR-U', n:'3-5', kw:['建房','群体','56','土地','拆迁'],sol:'群体利益冲突：政府主导协调，分户差异化处理，防抱团激化'},
  {id:8,  t:'56户村民群体纠纷调解',        type:'ZR-U', n:'3-5', kw:['群体','村民','56','集体'],sol:'群体性：分层沟通（先代表后群众），逐个击破共识点'},
  {id:12, t:'四年积案——邻里土地"信访-调解"闭环', type:'ZR-E', n:'2', kw:['土地','积案','信访','邻里','四年'],sol:'政府最小介入(S1)→双方自解；建立信访-调解闭环机制'},
  {id:13, t:'公用道引发的十年邻里战争',    type:'ZR-E', n:'2', kw:['公用','通道','道路','十年','邻里'],sol:'政府调而不判：双方僵持，引导各自让步、书面协议'},
  {id:18, t:'八年土地纠纷——"背靠背"调解法', type:'ZR-E', n:'2', kw:['土地','八年','背靠背','积案'],sol:'背靠背破信息不对称→引到双方自行和解；是经典范式'},
- {id:21, t:'宾阳50年跨镇山林积案——情理法三维', type:'ZR-E', n:'2', kw:['山林','50年','跨镇','积案','情理法'],sol:'情理法三维化解：情(体面)+理(是非)+法(边界)递进'},
+ {id:21, t:'某地50年跨镇山林积案——情理法三维', type:'ZR-E', n:'2', kw:['山林','50年','跨镇','积案','情理法'],sol:'情理法三维化解：情(体面)+理(是非)+法(边界)递进'},
  {id:32, t:'法官巧解漏水纠纷——柔性司法',  type:'ZR-E', n:'2', kw:['漏水','邻里','柔性','司法'],sol:'柔性司法：不判对错先看实际损害→给台阶→修复谅解'},
  {id:36, t:'六小时攻坚：员工宿舍突发疾病死亡赔偿', type:'ZR-E', n:'2', kw:['死亡','赔偿','突发','紧急性'],sol:'紧急性零和：快定责、给方案、限时闭环，防情绪升级'},
  {id:37, t:'48小时化解坠亡赔偿（法院+综治中心）', type:'ZR-E', n:'2', kw:['坠亡','赔偿','综治','联动'],sol:'综治联动快处：法院+综治双通道，48小时内闭环'},
  {id:38, t:'法官上门+村委联动——挽回三兄弟情', type:'ZR-E', n:'3', kw:['兄弟','家事','村委','亲情'],sol:'家事零和：上门+村委联动，先保亲情再分利益'},
  {id:39, t:'西瓜皮引发的邻里大战——沟通缺位', type:'ZR-E', n:'2', kw:['邻里','沟通','小事','误会','西瓜皮'],sol:'先翻译闹挖真需求→破沟通缺位→给台阶收场'},
- {id:3,  t:'广西大化"五字工作法"——历史通道', type:'CR-E', n:'2', kw:['历史','通道','共损','五字法'],sol:'共损型：流程化五字工作法，先止损再协商程序'},
+ {id:3,  t:'某地"五字工作法"——历史通道', type:'CR-E', n:'2', kw:['历史','通道','共损','五字法'],sol:'共损型：流程化五字工作法，先止损再协商程序'},
  {id:10, t:'少年求学梦：保险拒赔的综治调解', type:'CR-E', n:'2', kw:['保险','拒赔','赔偿','求学'],sol:'保险框架清晰：按条款定责，共损避免两败，争取合理赔付'},
  {id:11, t:'物业纠纷示范判决——审理一案化解一片', type:'CR-E', n:'2', kw:['物业','示范','判决','群体'],sol:'示范判决：一案定标，同类批量参照，降低重复成本'},
- {id:22, t:'焦作"法院+综治中心"五轮递进式调解', type:'CR-E', n:'2', kw:['递进','五轮','综治','法院'],sol:'递进式：一轮不成进二轮，逐轮缩小分歧至最小权威'},
+ {id:22, t:'某地"法院+综治中心"五轮递进式调解', type:'CR-E', n:'2', kw:['递进','五轮','综治','法院'],sol:'递进式：一轮不成进二轮，逐轮缩小分歧至最小权威'},
  {id:26, t:'河道纠纷四步调解法', type:'CR-E', n:'2', kw:['河道','四步','环境'],sol:'四步法+执行闭环：摸清—定性—协商—固化执行'},
  {id:14, t:'"菜单式"矛盾调处：群众点菜政府送餐', type:'CB-E', n:'2', kw:['菜单','共益','点菜','选择'],sol:'共益设计：提供多方案让双方选，帕累托最优路径'},
  {id:29, t:'六尺巷工作法——百万租赁纠纷', type:'CB-E', n:'2', kw:['租赁','六尺巷','情法','让'],sol:'六尺巷文化调和：让一步海阔天空，情法两解'},
@@ -257,7 +257,7 @@ const CASE_LIB=[
  {id:17, t:'婚恋纠纷的隐蔽化与反复化', type:'MX-A', n:'2+', kw:['婚恋','情感','反复','隐蔽'],sol:'情感利益不可量化→不建模：走经验层，先彻查反复根源'},
  {id:28, t:'遗产纠纷调解——"案子结了，家可能就散了"', type:'MX-A', n:'2+', kw:['遗产','家事','兄弟','散了'],sol:'案结≠家不散：先顾感情再分财产，防赢了官司散了家'},
  {id:20, t:'48户村民土地纠纷——"法不责众"与多元解纷', type:'CB-U', n:'3-5', kw:['48户','土地','群体','法不责众'],sol:'群体+共益：代表协商制+多元解纷，避免法不责众'},
- {id:30, t:'定西法院两案例入选最高法多元解纷案例库', type:'CR-E', n:'2', kw:['法院','入库','解纷'],sol:'法院+多元解纷：规范流程，形成可复制模板'},
+ {id:30, t:'某地法院两案例入选最高法多元解纷案例库', type:'CR-E', n:'2', kw:['法院','入库','解纷'],sol:'法院+多元解纷：规范流程，形成可复制模板'},
  /* ===== 2026-09-15 扩充：新增场景（医患/消费/校园）+ 失败案例组 ===== */
  // —— 医患类 ——
  {id:101,t:'某三甲医院术后并发症纠纷——"要说法"型', type:'ZR-E', n:'2', kw:['医患','术后','并发症','说法','医院'],sol:'家属要的是"为什么"，不是钱：先由主刀医生当面复盘手术过程+给出书面说明，情绪落地后再谈补偿方案'},
@@ -306,7 +306,8 @@ const SCENE_TYPE_HINT={
 function matchCases(scene, q2, desc){
  const txt=(desc||'')+' '+scene;
  const hints=SCENE_TYPE_HINT[scene]||[];
- return CASE_LIB.map(cs=>{
+ const POOL=(typeof MRT_CASES!=='undefined')?CASE_LIB.concat(MRT_CASES):CASE_LIB;
+ return POOL.map(cs=>{
   let s=0;
   cs.kw.forEach(k=>{ if(txt.includes(k)) s+=3; });
   const ti=hints.indexOf(cs.type);
@@ -315,6 +316,24 @@ function matchCases(scene, q2, desc){
   return {cs, s};
  }).filter(x=>x.s>0).sort((a,b)=>b.s-a.s).slice(0,3).map(x=>x.cs);
 }
+
+/* ===== 真实案例库（13例·2026-09-19 脱敏入库）===== */
+/* 来源：矛盾雷达_真实案例台账_20260919。均为脱敏案例，无人名/地名/单位名 */
+const MRT_CASES=[
+ {id:'R01',t:'医患·死亡赔偿家属聚集',type:'ZR-E',n:'2',kw:['医患','死亡','聚集','赔偿','医闹'],sol:'层间跳跃L3到L1再到L2：人到现场+暂不移尸（切导火索）→将心比心→再谈金额。13小时化解'},
+ {id:'R02',t:'土地·兄弟宅基地20次无效',type:'ZR-E',n:'2',kw:['土地','宅基地','兄弟','积案','斗殴','面子'],sol:'反面：20次调解全在事实层（界线/协议），核心却在面子层+秩序层→跨层谈判必失败'},
+ {id:'R03',t:'伤亡·机械致死赔偿6天化解',type:'ZR-E',n:'2',kw:['伤亡','赔偿','机械','意外','资产','扣押'],sol:'利益杠杆：查关键变量（设备已解封）→重新挂钩施压→当场付清。变量同步是命门'},
+ {id:'R04',t:'征地·风水僵局8轮加钱无效',type:'ZR-U',n:'3-5',kw:['征地','拆迁','风水','老人','祖坟','归属'],sol:'表层不等于深层：8轮加钱60到120万无效，深层是归属感→颁权益确认书+回家通道+给面子'},
+ {id:'R05',t:'污染·百户聚集质询会',type:'ZR-U',n:'3-5',kw:['污染','化工','聚集','农田','质询','不尊重'],sol:'愤怒根源不是损失是不被当回事：让企业负责人当场面对群众答辩→打断正反馈'},
+ {id:'R06',t:'邻里·12年院墙积案',type:'ZR-E',n:'2',kw:['邻里','院墙','积案','信访','上诉'],sol:'判3次仍不服：判决到上诉的强化回路；核心是结构问题+忍稳态断裂'},
+ {id:'R07',t:'交通·保险拒赔两年僵局',type:'CR-E',n:'2',kw:['交通','保险','拒赔','伤残','三方','博弈'],sol:'三方博弈（保险/肇事/受害）：僵局源于规则非意愿；靠调解员多次异地核实+坚持破局'},
+ {id:'R08',t:'租赁·关联双案合并化解',type:'CR-E',n:'2',kw:['租赁','合并','诉讼孤岛','程序','关联'],sol:'程序性错配：规则把一体问题切成两块→合并化解（打破诉讼孤岛）'},
+ {id:'R09',t:'知产·60户批量侵权示范调解',type:'CR-E',n:'3-5',kw:['知产','侵权','批量','商户','示范','商标'],sol:'同质矛盾示范-复制：选2件示范→形成基准→批量化解；三式沟通法（释法/算账/温情）'},
+ {id:'R10',t:'知产·42件批量调解',type:'CR-E',n:'3-5',kw:['知产','批量','42件','调解','小微商户'],sol:'示范调解+三式沟通+两次走出去：批量纠纷的系统化解公式'},
+ {id:'R11',t:'邻避·焚烧厂邻避变邻利',type:'CB-E',n:'3-5',kw:['邻避','焚烧','垃圾','变邻利','共享'],sol:'正面：识别情感场诉求（非只讲技术合规）+利益共享→成功。与PX失败形成对照'},
+ {id:'R12',t:'邻避·污水厂改造邻避变邻利',type:'CB-E',n:'3-5',kw:['邻避','污水','改造','变邻利'],sol:'同上：把项目做成邻利→情感场+利益共享。判场正确等于成功'},
+ {id:'R13',t:'邻避·PX群体事件多起',type:'ZR-U',n:'3-5',kw:['邻避','PX','化工','散步','群体事件','失败'],sol:'反面：8案例归类100%（固着4/错位3/降维1）；根因=用协作场规则应对情感场'}
+];
 
 /* ===== 线2：7+1 场景专属深水判据树 ===== */
 const SCENE_DEEP={
@@ -392,13 +411,22 @@ function judgeThenSave(){
  h+='<select id="roleSel" onchange="renderRole()"><option value="mediator">① 调解员视角</option><option value="official">② 基层干部视角</option><option value="party">③ 当事人视角</option></select>';
  h+='<div id="roleOut" style="margin-top:8px"></div>';
  h+='<div class="sec">📄 输出文书（一键生成）</div>';
- h+='<div class="row"><button class="btn2" onclick="docReport()">评估报告</button><button class="btn2" onclick="docLedger()">工作台账</button><button class="btn2" onclick="docEscalate()">上报件</button></div>';
+ h+='<div class="row"><button class="btn2" onclick="docStandard()">★ 标准版报告</button><button class="btn2" onclick="docReport()">评估报告</button><button class="btn2" onclick="docLedger()">工作台账</button><button class="btn2" onclick="docEscalate()">上报件</button></div>';
  h+='<div class="sec">💬 反馈口（结果回流・用于校准判据）</div>';
  h+='<div class="hint">用后请回填实际结果，系统会累计命中率与偏差——这是让判据越用越准的唯一途径。</div>';
  h+='<select id="fbResult"><option>真解（不再复发）</option><option>暂缓</option><option>复发</option><option>上报未解</option></select>';
  h+='<input id="fbNote" placeholder="补充说明（可选）：实际怎么解的 / 偏差在哪" style="margin-top:6px">';
  h+='<div class="row"><button class="btn2" onclick="saveFeedback()">提交反馈</button><button class="btn2" onclick="fillEvidence()">看本次证据清单</button></div>';
  h+='<div id="fbOut" style="margin-top:6px"></div>';
+ // ===== 一键反馈条（反馈码·本地生成·用户自愿发送） =====
+ h+='<div class="sec" style="margin-top:14px">📣 一键反馈（这个判断准吗？）</div>';
+ h+='<div class="hint">点一下就行——不用打字。点完会给你一段"反馈码"，复制发我即可（不发也没关系，数据只在你手机里）。</div>';
+ h+='<div id="fbShareBar" class="row">'+
+     '<button class="btn2" onclick="makeFbCode(1)">👍 准</button>'+
+     '<button class="btn2" onclick="makeFbCode(2)">👎 不准</button>'+
+     '<button class="btn2" onclick="makeFbCode(3)">✏️ 我要纠错</button>'+
+   '</div>';
+ h+='<div id="fbCodeOut" style="margin-top:8px"></div>';
  // ===== 饮酒场景：自动带出护伴清单 =====
  if($('scene').value==='酒局/饮酒致祸'){
   try{ h+=buildDrinkSafe(); }catch(e){ console.log('drink block err',e); }
@@ -418,7 +446,7 @@ function renderCases(){
  const q2=+(($('q2')&&$('q2').value)||1);
  const ms=matchCases(scene,q2,desc);
  if(!ms.length)return;
- let h='<div class="sec">📚 相似历史案例（据库内39案例库匹配）</div>';
+ let h='<div class="sec">📚 相似历史案例（库内39案例 + 13真实案例）</div>';
  ms.forEach(cs=>{
   h+='<div class="casebox" style="border:1px solid #e6e9f0;border-radius:8px;padding:10px;margin:8px 0">';
   h+='<b>案例'+cs.id+'·'+cs.t+'</b> <span class="tag t0">'+cs.type+'</span>';
@@ -448,6 +476,71 @@ function docReport(){
  L.push('','——本报告由矛盾雷达3.0生成，仅作辅助参考');
  return downloadText(L.join('\n'),'矛盾评估报告_'+stamp()+'.md');
 }
+/** 标准版报告（五屏结构·一页纸）——对应《标准版报告模板_一页纸_20260919》 */
+function docStandard(){
+ const jc=window.__lastJC; if(!jc)return alert('请先完成分诊');
+ const scene=($('scene')&&$('scene').value)||'';
+ const pa=($('pa')&&$('pa').value)||'当事人A';
+ const pb=($('pb')&&$('pb').value)||'当事人B';
+ const desc=($('desc')&&$('desc').value)||'—';
+ const r7=($('q2')&&$('q2').value)||'';
+ const ap=actionPack(jc.state,scene);
+ const ts=new Date(), ds=''+ts.getFullYear()+String(ts.getMonth()+1).padStart(2,'0')+String(ts.getDate()).padStart(2,'0');
+ const L=[];
+ // ===== 第一屏：结论摘要 =====
+ L.push('# 矛盾结构分析报告（标准版）','');
+ L.push('> 编号：MR-'+ds+'-'+String(Math.floor(Math.random()*90)+10),'');
+ L.push('> 分析日期：'+ts.toLocaleDateString('zh-CN'),'');
+ L.push('## 一、结论摘要','');
+ L.push('| 项 | 内容 |','|:--|:--|');
+ L.push('| 矛盾类型 | '+scene+' |');
+ L.push('| 风险级别 | '+jc.risk+' |');
+ L.push('| 剩余窗口 | '+jc.win+' |');
+ L.push('| 窗口状态 | '+jc.state+' |');
+ L.push('| 迫切度/不可收拾 | r='+jc.r+' / a='+jc.a+' |');
+ L.push('');
+ L.push('**一句话结论**：'+jc.stateHint,'');
+ // ===== 第二屏：结构分析 =====
+ L.push('## 二、结构分析','');
+ L.push('### 2.1 事实层','');
+ L.push('- 当事方：'+pa+' / '+pb);
+ L.push('- 矛盾类型：'+scene);
+ L.push('- 简要描述：'+desc);
+ L.push('');
+ L.push('### 2.2 定性层（判据链）','');
+ L.push('| 判据 | 结论 | 依据 | 可证伪点 |','|:--|:--|:--|:--|');
+ jc.L.forEach(x=>L.push('| '+x.id+' '+x.name+' | '+(x.ok?'通过':'未通过')+' | '+x.basis+' | '+x.falsify+' |'));
+ L.push('');
+ L.push('### 2.3 演化层（反事实推演）','');
+ if(jc.a<0.3){ L.push('- **不动**：窗口>30天，a增长慢，可从容多轮接触。'); L.push('- **现在动**：边际收益小，但可先建立关系/补信息。'); }
+ else if(jc.a<0.5){ L.push('- **不动**：14-30天内大概率升级，处理成本上升。'); L.push('- **现在动**：标准调解节奏，时间够、成本低。'); }
+ else if(jc.a<0.7){ L.push('- **不动**：7-14天内窗口可能关闭，主动权丢失。'); L.push('- **现在动**：加速调解，优先补信息后一次到位。'); }
+ else if(jc.a<0.9){ L.push('- **不动**：3-7天内极可能升级为聚集/群体事件。'); L.push('- **现在动**：紧急干预+同步做好上报准备。'); }
+ else { L.push('- **不动**：<3天已进入危机临界，后果不可控。'); L.push('- **现在动**：应急优先（安全+上报），不以调解为目标。'); }
+ L.push('');
+ // ===== 第三屏：行动建议 =====
+ L.push('## 三、行动建议','');
+ L.push('### 3.1 分阶段动作','');
+ ap.A.forEach(g=>{ L.push('**'+g.t+'**'); g.rows.forEach(r=>L.push('- '+r)); L.push(''); });
+ L.push('### 3.2 风险提示','');
+ ap.F.forEach(f=>L.push('- '+f));
+ L.push('');
+ L.push('### 3.3 该找谁','');
+ L.push('| 情形 | 建议对接 |','|:--|:--|');
+ ap.W.forEach(([k,v])=>L.push('| '+k+' | '+v+' |'));
+ L.push('');
+ // ===== 第四屏：边界与免责 =====
+ L.push('## 四、边界与免责','');
+ L.push('- 本报告由「矛盾雷达」生成，是**结构分析辅助工具**，基于 FB/CR/LB/PC/DZ 判据体系');
+ L.push('- **不构成法律意见、心理诊断或调解方案**，**不判断谁对谁错**');
+ L.push('- 分析基于当事人描述，事实有偏差则结论随之偏差');
+ L.push('- 预测部分为**情景推演**，非确定结论');
+ L.push('- 涉及法律、心理、人身安全的，请咨询相应专业人士');
+ L.push('');
+ L.push('---');
+ L.push('*生成时间：'+ts.toLocaleString('zh-CN')+'*');
+ return downloadText(L.join(String.fromCharCode(10)),'矛盾结构分析报告_'+ds+'.md');
+}
 function docLedger(){
  const jc=window.__lastJC; if(!jc)return alert('请先完成分诊');
  const scene=($('scene')&&$('scene').value)||'';
@@ -474,6 +567,58 @@ function downloadText(txt,name){
  const b=new Blob([txt],{type:'text/markdown'}); const a=document.createElement('a');
  a.href=URL.createObjectURL(b); a.download=name; a.click();
  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+}
+/* ===== 反馈码生成（本地·不上传） ===== */
+function makeFbCode(type){
+  try{
+    const jc = window.__lastJC || {};
+    const scene = window.__lastScene || '';
+    const desc = (document.getElementById('desc') && document.getElementById('desc').value || '').slice(0,60);
+    const d = new Date();
+    const ds = ''+d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
+    const tmap = {1:'准',2:'不准',3:'纠错'};
+    const risk = jc.risk || '—';
+    let code = 'MR-FB-'+ds+'-'+type+'-';
+    if(type===1){
+      code += '（判断准确）';
+    } else {
+      // 允许用户补充（可选）
+      let extra = prompt('说说哪里不对？（可留空直接确定）', '');
+      extra = (extra===null) ? '（未补充）' : (extra.trim() || '（未补充）');
+      code += extra.replace(/[\r\n]+/g,' ');
+    }
+    const full = '=== 矛盾雷达反馈 ===\n' + code
+      + '\n【场景】' + (scene||'—')
+      + '\n【风险级别】' + risk
+      + '\n【输入概要】' + (desc||'—')
+      + '\n【时间】' + d.toLocaleString('zh-CN')
+      + '\n=== 结束 ===';
+    // 本地留痕（不上传）
+    try{
+      const arr = JSON.parse(localStorage.getItem('fbCodes')||'[]');
+      arr.push({t:type, at:d.toISOString(), code:code});
+      localStorage.setItem('fbCodes', JSON.stringify(arr));
+    }catch(e){}
+    const out = document.getElementById('fbCodeOut');
+    if(out){
+      out.innerHTML = '<div class="card"><div class="small">把下面这段复制发我即可（公众号留言/私信都行）：</div>'
+        + '<textarea id="fbCodeText" style="width:100%;height:110px;margin-top:6px;font-size:12px">'+full+'</textarea>'
+        + '<div class="row" style="margin-top:6px"><button class="btn2" onclick="copyFbCode()">📋 复制</button>'
+        + '<button class="btn2" onclick="document.getElementById(\'fbCodeOut\').innerHTML=\'\'">关闭</button></div>'
+        + '<div class="small" style="margin-top:6px">你指出一处错，我就改一处。这条反馈已存在你本机，不会自动上传。</div></div>';
+    }
+  }catch(e){ console.error('fbCode err', e); alert('生成反馈码失败：'+e.message); }
+}
+function copyFbCode(){
+  const ta = document.getElementById('fbCodeText');
+  if(!ta) return;
+  ta.select();
+  try{
+    document.execCommand('copy');
+    alert('已复制！发送给作者即可 🙏');
+  }catch(e){
+    alert('请手动长按选中复制');
+  }
 }
 function stamp(){const d=new Date();return ''+d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'0800'.slice(0,4);}
 /* 颜色工具 */
